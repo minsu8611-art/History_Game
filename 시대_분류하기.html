@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>시대 분류하기</title>
+<style>
+:root{
+  --bg:#F7F1E1;--paper:#FBF8F0;--ink:#262220;--ink-soft:#6b6259;
+  --blue:#1F5C8B;--red:#C1362E;--yellow:#E3A72E;--green:#3E7A5D;--cta:#CB6A2F;--purple:#7B3F6B;--teal:#2E7DA3;
+  --line:rgba(38,34,32,0.16);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.topbar a.back{min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:800;font-size:14px;padding:0 12px;}
+.topbar .ttl{font-size:20px;font-weight:900;letter-spacing:-0.3px;}
+.topbar .sub{font-size:12px;color:var(--ink-soft);font-weight:600;margin-left:auto;text-align:right;}
+.topbar a.back{white-space:nowrap;flex:none;}
+.topbar .ttl{white-space:nowrap;}
+@media(max-width:560px){.topbar{padding:10px 12px;gap:10px;}.topbar .sub{display:none;}.topbar .ttl{font-size:18px;}.app{padding:12px 12px 32px;}}
+.app{max-width:1000px;margin:0 auto;padding:16px 16px 40px;}
+button{font-family:inherit;cursor:pointer;border:0;}
+.btn{min-height:52px;padding:0 22px;border-radius:14px;font-size:17px;font-weight:800;color:#fff;background:var(--cta);box-shadow:0 4px 0 rgba(0,0,0,0.18);}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.18);}
+.btn.blue{background:var(--blue);} .btn.red{background:var(--red);} .btn.green{background:var(--green);}
+.btn.purple{background:var(--purple);} .btn.teal{background:var(--teal);}
+.btn.yellow{background:var(--yellow);color:var(--ink);}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line);box-shadow:none;}
+.btn.small{min-height:44px;font-size:15px;padding:0 14px;}
+.btn[disabled]{opacity:.4;pointer-events:none;}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.center{text-align:center;}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;}
+select.sel{min-height:48px;font-size:16px;font-weight:700;border-radius:12px;border:1px solid var(--line);background:var(--paper);padding:0 12px;color:var(--ink);font-family:inherit;}
+.stepper{display:inline-flex;align-items:center;gap:6px;}
+.stepper button{width:48px;height:48px;border-radius:12px;background:var(--paper);border:1px solid var(--line);font-size:24px;font-weight:900;color:var(--ink);}
+.stepper .val{min-width:44px;text-align:center;font-size:22px;font-weight:900;}
+.hint{font-size:13px;color:var(--ink-soft);font-weight:600;}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(38,34,32,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.ov.on{display:flex;}
+.modal{background:var(--paper);border-radius:22px;padding:22px;max-width:520px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.35);}
+.modal h2{margin:0 0 12px;font-size:22px;font-weight:900;}
+.modal .big{font-size:56px;text-align:center;line-height:1.1;margin:6px 0;}
+.modal .msg{font-size:18px;font-weight:700;text-align:center;line-height:1.5;margin:6px 0 16px;}
+.modal .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:200;}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:800;background:var(--bg);border:1px solid var(--line);}
+
+
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;}
+.prog{font-size:16px;font-weight:900;}
+.bar{flex:1;min-width:120px;height:14px;border-radius:99px;background:rgba(38,34,32,.12);overflow:hidden;}
+.bar i{display:block;height:100%;background:var(--green);width:0;transition:width .3s;}
+.cardbox{text-align:center;padding:18px 8px;}
+.cardbox .hint{margin-bottom:8px;}
+.cur{display:inline-block;min-width:60%;padding:18px 26px;border-radius:22px;background:var(--paper);border:4px solid var(--cta);font-size:clamp(28px,min(9vw,11vh),72px);font-weight:900;box-shadow:0 8px 0 rgba(0,0,0,.15);word-break:keep-all;}
+.cur.shake{animation:shk .35s;border-color:var(--red);}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-14px)}75%{transform:translateX(14px)}}
+.bins{display:grid;gap:10px;margin-top:14px;}
+.bin{min-height:96px;border-radius:20px;color:#fff;font-size:clamp(18px,3.6vw,28px);font-weight:900;box-shadow:0 6px 0 rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px;word-break:keep-all;}
+.bin small{font-size:14px;opacity:.9;font-weight:700;}
+.bin:active{transform:translateY(3px);}
+.bin.ok{outline:6px solid var(--yellow);}
+
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← 메뉴</a><div class="ttl">시대 분류하기</div><div class="sub">여행바구니 · 어린이 역사체험</div></div>
+<div class="app">
+
+<div class="top">
+  <select class="sel" id="preset"></select>
+  <span class="prog" id="prog"></span>
+  <div class="bar"><i id="bar"></i></div>
+  <span class="pill" id="sc">⭐ 0</span>
+</div>
+<div class="cardbox"><div class="hint">이 카드는 어느 시대일까요? 시대 칸을 눌러요</div><div class="cur" id="cur"></div></div>
+<div class="bins" id="bins"></div>
+
+</div>
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+<canvas id="confetti"></canvas>
+<script>
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+/* 셔플백: 문제 은행이 다 소진될 때까지 중복 없이 n개씩 뽑는다 */
+function makeBag(){return {pool:[]};}
+function takeRound(bag,all,n){
+  n=Math.min(n,all.length);
+  const out=[];
+  while(out.length<n){
+    if(bag.pool.length===0){
+      let fresh=shuffle(all.map((_,i)=>i));
+      // 직전 라운드와 연속 중복 방지
+      fresh=fresh.filter(i=>!out.includes(i)).concat(fresh.filter(i=>out.includes(i)));
+      bag.pool=fresh;
+    }
+    const i=bag.pool.shift();
+    if(!out.includes(i))out.push(i);
+  }
+  return out.map(i=>all[i]);
+}
+/* 소리 */
+let _ac=null;
+function beep(f,d,type){
+  try{
+    _ac=_ac||new (window.AudioContext||window.webkitAudioContext)();
+    const o=_ac.createOscillator(),g=_ac.createGain();
+    o.type=type||'sine';o.frequency.value=f;g.gain.value=0.12;
+    o.connect(g);g.connect(_ac.destination);o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001,_ac.currentTime+(d||0.15));
+    o.stop(_ac.currentTime+(d||0.15)+0.02);
+  }catch(e){}
+}
+function sndOk(){beep(660,.12);setTimeout(()=>beep(880,.18),110);}
+function sndNo(){beep(220,.25,'square');}
+function sndTick(){beep(520,.06);}
+function sndAlarm(){let k=0;const t=setInterval(()=>{beep(k%2?880:660,.22,'triangle');if(++k>=6)clearInterval(t);},260);}
+/* 폭죽 */
+function confetti(){
+  let cv=$('#confetti');if(!cv)return;
+  const ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return;
+  cv.width=innerWidth;cv.height=innerHeight;
+  const cols=['#1F5C8B','#C1362E','#E3A72E','#3E7A5D','#CB6A2F','#7B3F6B','#2E7DA3'];
+  const ps=Array.from({length:90},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.4,
+    vx:(Math.random()-.5)*4,vy:2+Math.random()*4,s:6+Math.random()*8,c:pick(cols),r:Math.random()*6}));
+  let f=0;
+  (function step(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.2;ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);ctx.restore();});
+    if(++f<110)requestAnimationFrame(step);else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+/* 모달: body는 HTML, buttons=[{t,cls,fn}] */
+function modal(o){
+  const ov=$('#ov'),m=$('#modal');
+  m.innerHTML=(o.title?'<h2>'+esc(o.title)+'</h2>':'')+(o.icon?'<div class="big">'+o.icon+'</div>':'')+
+    (o.msg?'<div class="msg">'+o.msg+'</div>':'')+(o.html||'')+'<div class="acts" id="macts"></div>';
+  const acts=$('#macts');
+  (o.buttons||[{t:'확인'}]).forEach(b=>{
+    const el=document.createElement('button');el.className='btn '+(b.cls||'');el.textContent=b.t;
+    el.onclick=()=>{ if(b.keep!==true)closeModal(); if(b.fn)b.fn(); };
+    acts.appendChild(el);
+  });
+  ov.classList.add('on');
+}
+function closeModal(){$('#ov').classList.remove('on');}
+
+const ERAS=["선사·고조선", "삼국·남북국", "고려", "조선", "근현대"];const ITEMS=[["뗀석기", "선사·고조선"], ["빗살무늬토기", "선사·고조선"], ["고인돌", "선사·고조선"], ["단군왕검", "선사·고조선"], ["비파형동검", "선사·고조선"], ["반달돌칼", "선사·고조선"], ["주먹도끼", "선사·고조선"], ["가락바퀴", "선사·고조선"], ["8조법", "선사·고조선"], ["광개토대왕", "삼국·남북국"], ["불국사", "삼국·남북국"], ["석굴암", "삼국·남북국"], ["첨성대", "삼국·남북국"], ["장보고", "삼국·남북국"], ["대조영", "삼국·남북국"], ["을지문덕", "삼국·남북국"], ["무령왕릉", "삼국·남북국"], ["화랑", "삼국·남북국"], ["김유신", "삼국·남북국"], ["박혁거세", "삼국·남북국"], ["주몽", "삼국·남북국"], ["왕건", "고려"], ["팔만대장경", "고려"], ["고려청자", "고려"], ["직지심체요절", "고려"], ["서희", "고려"], ["강감찬", "고려"], ["삼별초", "고려"], ["최무선", "고려"], ["개경", "고려"], ["귀주대첩", "고려"], ["훈민정음", "조선"], ["거북선", "조선"], ["경복궁", "조선"], ["자격루", "조선"], ["허준", "조선"], ["정약용", "조선"], ["대동여지도", "조선"], ["수원 화성", "조선"], ["임진왜란", "조선"], ["병자호란", "조선"], ["한양", "조선"], ["신사임당", "조선"], ["3·1 운동", "근현대"], ["안중근", "근현대"], ["유관순", "근현대"], ["김구", "근현대"], ["윤봉길", "근현대"], ["김좌진", "근현대"], ["광복", "근현대"], ["대한민국 임시정부", "근현대"], ["6·25 전쟁", "근현대"], ["서울 올림픽", "근현대"]];const PRESETS={"3칸 (삼국·고려·조선)": [1, 2, 3], "4칸 (선사~조선)": [0, 1, 2, 3], "5칸 (선사~근현대)": [0, 1, 2, 3, 4]};
+const COL=['var(--yellow)','var(--blue)','var(--green)','var(--red)','var(--purple)'];
+const N=10,bags={};let key='',use=[],pool=[],round=[],idx=0,score=0,miss=false,locked=false,cnt={};
+const ps=$('#preset');Object.keys(PRESETS).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;ps.appendChild(o);});
+ps.value='4칸 (선사~조선)';ps.onchange=()=>start();
+function start(){
+  key=ps.value;use=PRESETS[key];pool=ITEMS.filter(it=>use.includes(ERAS.indexOf(it[1])));
+  bags[key]=bags[key]||makeBag();round=takeRound(bags[key],pool,N);idx=0;score=0;cnt={};
+  const b=$('#bins');b.style.gridTemplateColumns='repeat('+(use.length>3?Math.min(use.length,5):use.length)+',1fr)';b.innerHTML='';
+  use.forEach(e=>{const d=document.createElement('button');d.className='bin';d.style.background=e===0?'var(--yellow)':COL[e];if(e===0)d.style.color='var(--ink)';
+    d.dataset.e=e;d.innerHTML=esc(ERAS[e])+'<small id="n'+e+'">0장</small>';d.onclick=()=>place(e,d);b.appendChild(d);});
+  show();
+}
+function show(){
+  locked=false;miss=false;
+  $('#prog').textContent=(idx+1)+' / '+round.length;$('#bar').style.width=(idx/round.length*100)+'%';$('#sc').textContent='⭐ '+score;
+  const c=$('#cur');c.className='cur';c.textContent=round[idx][0];
+}
+function place(e,btn){
+  if(locked)return;
+  const ans=ERAS.indexOf(round[idx][1]);
+  if(e===ans){
+    locked=true;sndOk();if(!miss)score++;cnt[e]=(cnt[e]||0)+1;$('#n'+e).textContent=cnt[e]+'장';
+    btn.classList.add('ok');setTimeout(()=>{btn.classList.remove('ok');next();},550);
+  }else{
+    miss=true;sndNo();const c=$('#cur');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');
+  }
+}
+function next(){
+  if(idx+1>=round.length){finish();return;}
+  idx++;show();
+}
+function finish(){
+  $('#bar').style.width='100%';$('#sc').textContent='⭐ '+score;
+  const r=score/round.length;
+  const [ic,msg]=r===1?['🏆','한 번에 다 맞혔어요!']:r>=.7?['😄','아주 잘했어요!']:r>=.4?['🙂','좋아요! 한 번 더 도전!']:['💪','괜찮아요, 다시 해봐요!'];
+  if(r>=.7)confetti();
+  modal({icon:ic,title:'한 번에 맞힌 카드 '+score+' / '+round.length,msg:msg,buttons:[{t:'다시 (새 카드)',cls:'green',fn:()=>start()},{t:'닫기',cls:'ghost'}]});
+}
+start();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>역사수업 OX·객관식 퀴즈</title>
+<style>
+  :root{
+    --bg:#F7F1E1;
+    --paper:#FBF8F0;
+    --ink:#262220;
+    --ink-soft:#6b6259;
+    --blue:#1F5C8B;
+    --red:#C1362E;
+    --yellow:#E3A72E;
+    --green:#3E7A5D;
+    --cta:#CB6A2F;
+    --line: rgba(38,34,32,0.16);
+    --line-soft: rgba(38,34,32,0.22);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    -webkit-user-select:none;user-select:none;
+    touch-action:manipulation;
+    overflow:hidden;
+  }
+  .app{ height:100%; display:flex; flex-direction:column; }
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;border-bottom:1px solid var(--line);
+    background:var(--paper); flex-shrink:0; gap:8px;
+  }
+  .topbar h1{ font-size:18px;margin:0;font-weight:800;letter-spacing:-0.2px; }
+  .topbar .sub{ font-size:12px;color:var(--ink-soft);font-weight:500;margin-top:2px; }
+  .topbar-actions{ display:flex;gap:8px;align-items:center;flex-shrink:0; }
+  select#presetSelect{
+    font-size:14px;font-weight:700;padding:9px 10px;border-radius:10px;
+    border:1.5px solid var(--line);background:var(--paper);color:var(--ink);max-width:30vw;
+  }
+  button{ font-family:inherit;cursor:pointer;border:none; }
+  .icon-btn{
+    font-size:14px;font-weight:700;padding:9px 14px;border-radius:10px;
+    background:var(--paper);border:1.5px solid var(--ink);color:var(--ink);
+  }
+  .icon-btn:active{ transform:scale(0.96); }
+  .ghost-btn{
+    font-size:14px;font-weight:700;padding:9px 16px;border-radius:10px;
+    background:transparent;border:1.5px solid var(--line-soft);color:var(--ink-soft);
+  }
+  .cta-btn{
+    font-size:16px;font-weight:800;padding:12px 20px;border-radius:12px;
+    background:var(--cta);color:var(--paper);
+  }
+  .cta-btn:active{ transform:scale(0.97); }
+  .type-toggle{ display:flex;gap:8px;margin:6px 0 4px; }
+  .type-btn{
+    flex:1;padding:11px;border-radius:10px;font-weight:800;font-size:14px;
+    background:var(--bg);border:1.5px solid var(--line-soft);color:var(--ink-soft);
+  }
+  .type-btn.active{ background:var(--cta);color:var(--paper);border-color:var(--cta); }
+
+  .stage{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;padding:16px;min-height:0;width:100%;
+  }
+  .quiz-card{
+    width:100%;max-width:460px;
+    background:var(--paper);border-radius:16px;padding:18px 20px;
+    box-shadow:0 6px 16px rgba(38,34,32,0.12);
+  }
+  .quiz-eyebrow{ font-size:11px;font-weight:800;color:var(--cta);letter-spacing:1.5px;margin:0 0 8px; }
+  .quiz-question{ font-size:17px;font-weight:800;line-height:1.45;margin:0;white-space:pre-line; }
+
+  .answer-area{ width:100%;max-width:460px; }
+  .ox-row{ display:flex;gap:14px; }
+  .ox-btn{
+    flex:1;aspect-ratio:1.4/1;border-radius:16px;font-size:40px;font-weight:900;
+    background:var(--paper);border:3px solid var(--line-soft);color:var(--ink);
+    box-shadow:0 4px 10px rgba(38,34,32,0.1);
+  }
+  .ox-btn:active{ transform:scale(0.96); }
+  .mc-list{ display:flex;flex-direction:column;gap:10px; }
+  .mc-btn{
+    padding:14px 16px;border-radius:12px;font-size:15px;font-weight:700;text-align:left;
+    background:var(--paper);border:2px solid var(--line-soft);color:var(--ink);
+    box-shadow:0 3px 8px rgba(38,34,32,0.08);
+  }
+  .mc-btn:active{ transform:scale(0.98); }
+  .answer-btn.correct{ background:var(--green);color:var(--paper);border-color:var(--green); }
+  .answer-btn.wrong{ background:var(--red);color:var(--paper);border-color:var(--red); }
+  .answer-btn.reveal{ border-color:var(--green);box-shadow:0 0 0 2px var(--green) inset; }
+  .answer-btn[disabled]{ opacity:0.85; }
+
+  .feedback-box{
+    width:100%;max-width:460px;text-align:center;min-height:20px;
+  }
+  .feedback-text{ font-size:14px;font-weight:800;margin:0; }
+  .feedback-text.correct{ color:var(--green); }
+  .feedback-text.wrong{ color:var(--red); }
+  .explain-text{ font-size:13px;color:var(--ink-soft);margin:4px 0 0;line-height:1.4; }
+
+  .controls-row{ display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;flex-shrink:0; }
+  .score-info{
+    font-size:13px;font-weight:700;color:var(--ink-soft);
+    background:var(--paper);padding:6px 12px;border-radius:20px;border:1px solid var(--line);
+  }
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(38,34,32,0.55);
+    display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .overlay.hidden{ display:none; }
+  .panel{
+    background:var(--paper);border-radius:18px;padding:20px;
+    width:min(92vw,480px);max-height:88vh;overflow:auto;
+    box-shadow:0 20px 50px rgba(0,0,0,0.3);
+  }
+  .panel-head{ display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
+  .panel-head h2{ margin:0;font-size:18px;font-weight:800; }
+  .panel .field-label{ display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin:12px 0 6px; }
+  .panel-row{ display:flex;gap:8px;margin-top:14px; }
+  .panel-row .cta-btn, .panel-row .ghost-btn{ flex:1; }
+  #presetNameInput{
+    width:100%;font-size:15px;padding:11px 12px;border-radius:10px;
+    border:1.5px solid var(--line);font-family:inherit;
+  }
+  .hint-text{ font-size:12.5px;color:var(--ink-soft);margin-top:8px;line-height:1.5; }
+
+  .q-list{ display:flex;flex-direction:column;gap:6px;margin-bottom:6px; }
+  .q-card{
+    border:1.5px solid var(--line-soft);border-radius:10px;padding:10px 10px;
+    background:var(--bg);display:flex;align-items:center;gap:8px;
+  }
+  .q-card-main{ flex:1;min-width:0; }
+  .q-tag{
+    flex-shrink:0;font-size:10.5px;font-weight:800;padding:5px 8px;border-radius:7px;color:var(--paper);
+  }
+  .q-tag.ox{ background:var(--blue); }
+  .q-tag.mc{ background:var(--purple,#7B3F6B); }
+  .q-tag.mc5{ background:var(--cta); }
+  .q-text-preview{
+    font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .q-answer-preview{ font-size:11.5px;color:var(--ink-soft);margin-top:2px; }
+  .q-del{
+    width:32px;height:32px;border-radius:8px;flex-shrink:0;
+    background:var(--paper);border:1.5px solid var(--red);color:var(--red);
+    font-size:15px;font-weight:800;
+  }
+  .q-del:active{ transform:scale(0.9); }
+
+  .qedit-overlay{
+    position:fixed;inset:0;background:rgba(38,34,32,0.6);
+    display:flex;align-items:center;justify-content:center;z-index:80;padding:20px;
+  }
+  .qedit-overlay.hidden{ display:none; }
+  .qedit-card{ background:var(--paper);border-radius:16px;padding:20px;width:min(92vw,440px);max-height:88vh;overflow:auto; }
+  .qedit-card h3{ margin:0 0 4px;font-size:16px;font-weight:800; }
+  .qedit-card label{ display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin:10px 0 4px; }
+  .qedit-card input{
+    width:100%;font-size:15px;padding:11px;border-radius:10px;
+    border:1.5px solid var(--line-soft);font-family:inherit;background:var(--paper);color:var(--ink);
+  }
+  .ox-answer-row{ display:flex;gap:8px; }
+  .ox-answer-btn{
+    flex:1;padding:12px;border-radius:10px;font-weight:800;font-size:16px;
+    background:var(--bg);border:1.5px solid var(--line-soft);color:var(--ink-soft);
+  }
+  .ox-answer-btn.selected{ background:var(--green);color:var(--paper);border-color:var(--green); }
+  .opt-row{ display:flex;align-items:center;gap:8px;margin-top:8px; }
+  .opt-row input{ flex:1;margin:0; }
+  .opt-radio{
+    width:34px;height:34px;border-radius:50%;flex-shrink:0;
+    background:var(--bg);border:1.5px solid var(--line-soft);font-weight:800;color:var(--ink-soft);
+  }
+  .opt-radio.selected{ background:var(--green);color:var(--paper);border-color:var(--green); }
+  .opt-radio5{
+    width:34px;height:34px;border-radius:50%;flex-shrink:0;
+    background:var(--bg);border:1.5px solid var(--line-soft);font-weight:800;color:var(--ink-soft);
+  }
+  .opt-radio5.selected{ background:var(--green);color:var(--paper);border-color:var(--green); }
+
+  .result-card{
+    background:var(--paper);border-radius:20px;padding:30px 26px;
+    width:min(90vw,420px);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.35);
+    animation:popIn 0.35s cubic-bezier(0.2,0.8,0.2,1);
+  }
+  @keyframes popIn{ from{transform:scale(0.7);opacity:0;} to{transform:scale(1);opacity:1;} }
+  .result-eyebrow{ margin:0 0 10px;font-size:13px;font-weight:800;letter-spacing:2px;color:var(--cta); }
+  .result-text{ margin:0 0 22px;font-size:22px;font-weight:900;line-height:1.4; }
+  .confetti-layer{ position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:49; }
+  .confetti-piece{
+    position:absolute;top:-20px;width:10px;height:16px;opacity:0.9;
+    animation-name:fall;animation-timing-function:linear;animation-fill-mode:forwards;
+  }
+  @keyframes fall{ to{ transform:translateY(110vh) rotate(540deg); opacity:0.2; } }
+  .menu-back{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;margin-bottom:6px;border-radius:10px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-size:13px;font-weight:800;}
+  @media(max-width:640px){
+    .topbar{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+    .topbar>div:first-child{flex:1 1 100%;}
+    .topbar h1{white-space:nowrap;}
+    .topbar-actions{flex:1 1 100%;flex-wrap:wrap;justify-content:flex-start;}
+    .topbar-actions select{max-width:none !important;flex:1 1 150px;min-height:44px;}
+    .topbar-actions button{min-height:44px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div>
+      <a class="menu-back" href="index.html">← 메뉴</a>
+      <h1>OX·객관식 퀴즈</h1>
+      <div class="sub">여행바구니 · 어린이 역사체험</div>
+    </div>
+    <div class="topbar-actions">
+      <select id="presetSelect"></select>
+      <button id="editBtn" class="icon-btn">문제 편집</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="quiz-card">
+      <p class="quiz-eyebrow" id="quizEyebrow">문제 1 / 10</p>
+      <p class="quiz-question" id="quizQuestion">-</p>
+    </div>
+    <div class="answer-area" id="answerArea"></div>
+    <div class="feedback-box">
+      <p class="feedback-text" id="feedbackText"></p>
+      <p class="explain-text" id="explainText"></p>
+    </div>
+    <div class="controls-row">
+      <span class="score-info" id="scoreInfo"></span>
+      <button id="restartBtn" class="ghost-btn">다시 하기</button>
+    </div>
+  </main>
+</div>
+
+<div id="editOverlay" class="overlay hidden">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>문제 편집</h2>
+      <button id="closeEdit" class="icon-btn">닫기</button>
+    </div>
+    <label class="field-label">탭해서 문제를 바꾸거나, ×로 삭제하세요</label>
+    <div class="q-list" id="qList"></div>
+    <div class="panel-row">
+      <button id="addQuestionBtn" class="ghost-btn">+ 새 문제 추가</button>
+    </div>
+
+    <label class="field-label">다른 이름으로 저장 (선택)</label>
+    <input type="text" id="presetNameInput" placeholder="예: 조선시대 퀴즈">
+    <div class="panel-row">
+      <button id="saveAsBtn" class="ghost-btn">이 이름으로 저장</button>
+      <button id="deletePresetBtn" class="ghost-btn">이 목록 삭제</button>
+    </div>
+  </div>
+</div>
+
+<div id="qEditOverlay" class="qedit-overlay hidden">
+  <div class="qedit-card">
+    <h3 id="qEditTitle">문제 입력</h3>
+    <div class="type-toggle">
+      <button class="type-btn" id="typeOxBtn">OX 문제</button>
+      <button class="type-btn" id="typeMcBtn">객관식(4지선다)</button>
+      <button class="type-btn" id="typeMc5Btn">한능검 심화형(5지선다)</button>
+    </div>
+
+    <label class="field-label">문제 내용</label>
+    <input type="text" id="qTextInput" placeholder="예: 세종대왕은 훈민정음을 창제했다.">
+
+    <div id="oxFields">
+      <label class="field-label">정답</label>
+      <div class="ox-answer-row">
+        <button class="ox-answer-btn" id="oxAnswerO">O</button>
+        <button class="ox-answer-btn" id="oxAnswerX">X</button>
+      </div>
+    </div>
+
+    <div id="mcFields">
+      <label class="field-label">보기 (원을 탭해서 정답 표시)</label>
+      <div class="opt-row"><button class="opt-radio" data-i="0">1</button><input type="text" id="opt0" placeholder="보기 1"></div>
+      <div class="opt-row"><button class="opt-radio" data-i="1">2</button><input type="text" id="opt1" placeholder="보기 2"></div>
+      <div class="opt-row"><button class="opt-radio" data-i="2">3</button><input type="text" id="opt2" placeholder="보기 3"></div>
+      <div class="opt-row"><button class="opt-radio" data-i="3">4</button><input type="text" id="opt3" placeholder="보기 4"></div>
+    </div>
+
+    <div id="mc5Fields">
+      <label class="field-label">보기 (원을 탭해서 정답 표시, 5개)</label>
+      <div class="opt-row"><button class="opt-radio5" data-i="0">1</button><input type="text" id="opt5_0" placeholder="보기 1"></div>
+      <div class="opt-row"><button class="opt-radio5" data-i="1">2</button><input type="text" id="opt5_1" placeholder="보기 2"></div>
+      <div class="opt-row"><button class="opt-radio5" data-i="2">3</button><input type="text" id="opt5_2" placeholder="보기 3"></div>
+      <div class="opt-row"><button class="opt-radio5" data-i="3">4</button><input type="text" id="opt5_3" placeholder="보기 4"></div>
+      <div class="opt-row"><button class="opt-radio5" data-i="4">5</button><input type="text" id="opt5_4" placeholder="보기 5"></div>
+    </div>
+
+    <label class="field-label">해설 (선택, 정답 확인 후 보여줘요)</label>
+    <input type="text" id="explainInput" placeholder="예: 1443년경 창제, 1446년 반포되었어요.">
+
+    <div class="panel-row">
+      <button id="qEditCancel" class="ghost-btn">취소</button>
+      <button id="qEditConfirm" class="cta-btn">확인</button>
+    </div>
+  </div>
+</div>
+
+<div id="resultOverlay" class="overlay hidden">
+  <div class="result-card">
+    <p class="result-eyebrow">결과</p>
+    <p class="result-text" id="resultText">-</p>
+    <button id="closeResult" class="cta-btn">다시 하기</button>
+  </div>
+</div>
+<div id="confettiLayer" class="confetti-layer"></div>
+
+<script>
+(function(){
+  var presets = {
+    "OX 초급": {
+      pool: [],
+      questions: [
+        {type:'ox', text:'세종대왕은 훈민정음을 창제했다.', answer:true, explain:'1443년경 창제하고 1446년에 반포했어요.'},
+        {type:'ox', text:'이순신 장군은 임진왜란 때 활약했다.', answer:true, explain:'한산도 대첩, 명량 해전 등에서 큰 승리를 거뒀어요.'},
+        {type:'ox', text:'고려는 조선보다 나중에 세워진 나라이다.', answer:false, explain:'고려(918년)가 조선(1392년)보다 먼저 세워졌어요.'},
+        {type:'ox', text:'신라의 수도는 평양이었다.', answer:false, explain:'신라의 수도는 경주(금성)였어요. 평양은 고구려의 수도였어요.'},
+        {type:'ox', text:'3·1 운동은 1919년에 일어났다.', answer:true, explain:'1919년 3월 1일에 전국적인 만세운동이 일어났어요.'},
+        {type:'ox', text:'훈민정음은 한자를 완전히 없애기 위해 만든 문자이다.', answer:false, explain:'한자를 없애려던 게 아니라, 백성들이 쉽게 배워 쓸 수 있는 문자를 만들려던 목적이었어요.'},
+        {type:'ox', text:'6·25 전쟁은 1950년에 시작되었다.', answer:true, explain:'1950년 6월 25일 새벽에 시작됐어요.'},
+        {type:'ox', text:'경복궁은 조선의 궁궐이다.', answer:true, explain:'조선을 세운 태조 이성계가 지은 궁궐이에요.'},
+        {type:'ox', text:'광개토대왕은 백제의 왕이었다.', answer:false, explain:'광개토대왕은 고구려의 왕이었어요.'},
+        {type:'ox', text:'팔만대장경은 고려 시대에 만들어졌다.', answer:true, explain:'몽골의 침입을 부처의 힘으로 물리치기를 바라며 만들었어요.'},
+        {type:'ox', text:'발해는 대조영이 세운 나라이다.', answer:true, explain:'고구려 유민과 말갈족이 함께 세운 나라예요.'},
+        {type:'ox', text:'강감찬은 귀주대첩에서 거란을 물리쳤다.', answer:true, explain:'1019년, 고려를 침입한 거란군을 크게 물리쳤어요.'},
+        {type:'ox', text:'이성계는 위화도 회군을 통해 권력을 잡았다.', answer:true, explain:'요동 정벌을 위해 나섰다가 군대를 돌려 개경으로 향했어요.'},
+        {type:'ox', text:'판소리는 서양에서 전해진 음악이다.', answer:false, explain:'판소리는 우리나라 고유의 전통 음악이에요.'},
+        {type:'ox', text:'첨성대는 조선시대에 만들어졌다.', answer:false, explain:'첨성대는 신라 선덕여왕 때 만들어졌어요.'},
+        {type:'ox', text:'임진왜란은 16세기 말에 일어났다.', answer:true, explain:'1592년에 시작되었으니 16세기 말이 맞아요.'},
+        {type:'ox', text:'대한민국 정부는 1948년에 수립되었다.', answer:true, explain:'1948년 8월 15일, 대한민국 정부 수립이 선포되었어요.'},
+        {type:'ox', text:'팔만대장경은 종이로 인쇄된 책이다.', answer:false, explain:'팔만대장경은 나무판(목판)에 글자를 새긴 것이에요.'},
+        {type:'ox', text:'세종대왕 때 측우기가 발명되었다.', answer:true, explain:'비가 내린 양을 재는 기구예요.'},
+        {type:'ox', text:'6·25 전쟁은 인천상륙작전으로 시작되었다.', answer:false, explain:'전쟁은 1950년 6월 25일 북한의 남침으로 시작되었고, 인천상륙작전은 그 후 9월에 이루어진 반격 작전이에요.'}
+      ]
+    },
+    "OX 중급": {
+      pool: [],
+      questions: [
+        {type:'ox', text:'근초고왕 때 백제는 마한 지역을 정복했다.', answer:true, explain:'백제의 전성기를 이끈 왕이에요.'},
+        {type:'ox', text:'살수대첩은 을지문덕이 거란을 물리친 전투이다.', answer:false, explain:'을지문덕이 물리친 나라는 수(隋)나라예요.'},
+        {type:'ox', text:'신라의 삼국통일은 676년에 완성되었다.', answer:true, explain:'나당전쟁에서 승리하며 통일을 완성했어요.'},
+        {type:'ox', text:'고려는 광종 때 과거제를 폐지했다.', answer:false, explain:'광종 때 과거제가 처음 실시됐어요. 폐지가 아니에요.'},
+        {type:'ox', text:'묘청은 서경(평양) 천도를 주장했다.', answer:true, explain:'개경 세력에 맞서 서경 천도와 칭제건원을 주장했어요.'},
+        {type:'ox', text:'무신정변은 1170년에 일어났다.', answer:true, explain:'정중부 등 무신들이 정변을 일으켰어요.'},
+        {type:'ox', text:'삼별초는 몽골에 협력한 군대였다.', answer:false, explain:'삼별초는 몽골에 끝까지 항쟁한 군대예요.'},
+        {type:'ox', text:'정몽주는 조선 건국에 적극 협력했다.', answer:false, explain:'정몽주는 고려에 대한 충절을 지키다 죽임을 당했어요.'},
+        {type:'ox', text:'세조는 계유정난을 통해 왕위에 올랐다.', answer:true, explain:'단종을 몰아내고 왕위에 올랐어요.'},
+        {type:'ox', text:'임진왜란 때 명나라 군대는 조선을 돕지 않고 방관했다.', answer:false, explain:'명나라는 군대를 보내 조선을 도왔어요.'},
+        {type:'ox', text:'병자호란 때 조선은 청에 항복했다.', answer:true, explain:'남한산성에서 항전하다 결국 항복했어요.'},
+        {type:'ox', text:'영조와 정조 시기를 탕평 정치의 시대라 부른다.', answer:true, explain:'붕당 간 대립을 완화하려 한 정치를 폈어요.'},
+        {type:'ox', text:'갑신정변은 3일 만에 실패로 끝났다.', answer:true, explain:'그래서 흔히 삼일천하라고 불러요.'},
+        {type:'ox', text:'동학농민운동은 전라도 고부에서 시작되었다.', answer:true, explain:'고부 군수의 학정에 맞서 봉기했어요.'},
+        {type:'ox', text:'을사늑약으로 대한제국은 외교권을 계속 유지했다.', answer:false, explain:'을사늑약으로 외교권을 빼앗겼어요.'},
+        {type:'ox', text:'헤이그 특사는 성공적으로 대한제국의 독립을 인정받았다.', answer:false, explain:'오히려 실패했고, 고종이 강제 퇴위되는 계기가 됐어요.'},
+        {type:'ox', text:'봉오동 전투와 청산리 대첩은 모두 1920년에 일어났다.', answer:true, explain:'같은 해에 일어난 대표적인 무장독립운동 승리예요.'},
+        {type:'ox', text:'광주학생항일운동은 3·1운동보다 먼저 일어났다.', answer:false, explain:'3·1운동(1919)이 광주학생항일운동(1929)보다 먼저예요.'},
+        {type:'ox', text:'모스크바 3국 외상회의에서 한반도 신탁통치가 논의되었다.', answer:true, explain:'1945년 12월에 열린 회의예요.'},
+        {type:'ox', text:'4·19 혁명으로 이승만 대통령이 물러났다.', answer:true, explain:'3·15 부정선거에 항의하며 일어난 혁명이에요.'}
+      ]
+    },
+    "OX 상급": {
+      pool: [],
+      questions: [
+        {type:'ox', text:'근초고왕은 371년 평양성을 공격해 고구려 고국원왕을 전사시켰다.', answer:true, explain:'백제 전성기의 대표적인 사건이에요.'},
+        {type:'ox', text:'장수왕의 남진 정책으로 신라가 도읍을 웅진으로 옮겼다.', answer:false, explain:'도읍을 웅진(공주)으로 옮긴 나라는 백제예요.'},
+        {type:'ox', text:'진흥왕은 화랑도를 국가적인 조직으로 정비했다.', answer:true, explain:'화랑도를 통해 인재를 양성했어요.'},
+        {type:'ox', text:'발해는 일본에 보낸 국서에서 스스로를 신라의 후예라고 밝혔다.', answer:false, explain:'발해는 고구려를 계승한 나라라는 의식을 표방했어요.'},
+        {type:'ox', text:'최승로는 시무 28조를 올려 유교 정치이념을 건의했다.', answer:true, explain:'고려 성종에게 올린 개혁안이에요.'},
+        {type:'ox', text:'강조의 정변은 거란의 2차 침입 구실이 되었다.', answer:true, explain:'거란은 이를 구실 삼아 고려를 침입했어요.'},
+        {type:'ox', text:'이자겸의 난은 무신정변보다 나중에 일어났다.', answer:false, explain:'이자겸의 난(1126)이 무신정변(1170)보다 먼저예요.'},
+        {type:'ox', text:'공민왕은 무력으로 쌍성총관부를 수복했다.', answer:true, explain:'원의 간섭에서 벗어나려는 개혁의 일환이었어요.'},
+        {type:'ox', text:'6조 직계제는 의정부의 권한을 강화하는 제도였다.', answer:false, explain:'6조 직계제는 오히려 의정부의 권한을 약화하고 왕권을 강화했어요.'},
+        {type:'ox', text:'기묘사화로 조광조 등 사림 세력이 큰 피해를 입었다.', answer:true, explain:'급진 개혁을 추진하던 사림이 큰 타격을 입었어요.'},
+        {type:'ox', text:'임진왜란 이후 조선은 훈련도감을 폐지했다.', answer:false, explain:'훈련도감은 임진왜란 중에 설치되어 이후에도 유지됐어요.'},
+        {type:'ox', text:'영조는 균역법을 실시해 백성의 군포 부담을 줄였다.', answer:true, explain:'군포를 1년에 2필에서 1필로 줄였어요.'},
+        {type:'ox', text:'정조의 신해통공은 시전 상인의 특권을 더욱 강화했다.', answer:false, explain:'신해통공은 시전 상인의 금난전권을 폐지해 특권을 약화시켰어요.'},
+        {type:'ox', text:'흥선대원군은 전국의 서원을 대폭 정리했다.', answer:true, explain:'붕당의 근거지로 여겨지던 서원을 크게 줄였어요.'},
+        {type:'ox', text:'강화도 조약은 조선에 유리한 평등 조약이었다.', answer:false, explain:'강화도 조약은 조선에 불리한 불평등 조약이었어요.'},
+        {type:'ox', text:'갑오개혁으로 신분제가 공식적으로 폐지되었다.', answer:true, explain:'과거제와 함께 신분제도 공식 폐지됐어요.'},
+        {type:'ox', text:'아관파천으로 고종은 러시아 공사관으로 거처를 옮겼다.', answer:true, explain:'을미사변 이후 신변의 위협을 느껴 옮겼어요.'},
+        {type:'ox', text:'신간회는 사회주의 계열만 참여한 단체였다.', answer:false, explain:'신간회는 민족주의 계열과 사회주의 계열이 함께한 좌우합작 단체예요.'},
+        {type:'ox', text:'대한민국 임시정부는 한국광복군을 창설해 무장투쟁을 이어갔다.', answer:true, explain:'1940년, 충칭에서 한국광복군을 창설했어요.'},
+        {type:'ox', text:'유신헌법으로 대통령의 권한이 크게 강화되었다.', answer:true, explain:'긴급조치권 등 대통령에게 강력한 권한이 주어졌어요.'}
+      ]
+    },
+    "객관식 초급": {
+      pool: [],
+      questions: [
+        {type:'mc', text:'다음 중 신라의 수도는 어디일까요?', options:['평양','경주','부여','개성'], correctIndex:1, explain:'경주는 신라 천 년의 수도였어요.'},
+        {type:'mc', text:'훈민정음을 창제한 왕은 누구일까요?', options:['태조','세종대왕','정조','영조'], correctIndex:1, explain:'세종대왕이 집현전 학자들과 함께 만들었어요.'},
+        {type:'mc', text:'임진왜란 때 활약한 장군은 누구일까요?', options:['을지문덕','이순신','강감찬','김유신'], correctIndex:1, explain:'이순신 장군은 수군을 이끌고 여러 해전에서 승리했어요.'},
+        {type:'mc', text:'고려를 세운 사람은 누구일까요?', options:['왕건','이성계','견훤','궁예'], correctIndex:0, explain:'왕건은 918년 고려를 세우고 후삼국을 통일했어요.'},
+        {type:'mc', text:'조선을 세운 사람은 누구일까요?', options:['왕건','이성계','정몽주','정도전'], correctIndex:1, explain:'이성계는 위화도 회군 이후 조선을 건국했어요.'},
+        {type:'mc', text:'다음 중 백제의 수도가 아니었던 곳은?', options:['한성','웅진','사비','평양'], correctIndex:3, explain:'평양은 고구려의 수도였어요.'},
+        {type:'mc', text:'3·1 운동이 일어난 연도는?', options:['1910년','1919년','1945년','1950년'], correctIndex:1, explain:'1919년, 전국적인 만세운동이 일어났어요.'},
+        {type:'mc', text:'6·25 전쟁의 전세를 뒤집은 작전은?', options:['행주대첩','인천상륙작전','명량해전','우금치전투'], correctIndex:1, explain:'1950년 9월, 인천상륙작전으로 서울을 되찾을 수 있었어요.'},
+        {type:'mc', text:'다음 중 고구려의 왕이 아닌 사람은?', options:['광개토대왕','장수왕','근초고왕','소수림왕'], correctIndex:2, explain:'근초고왕은 백제의 왕이었어요.'},
+        {type:'mc', text:'임진왜란 때 거북선을 활용한 장군은?', options:['이순신','신립','권율','곽재우'], correctIndex:0, explain:'이순신 장군이 거북선을 전투에 활용했어요.'},
+        {type:'mc', text:'다음 중 고려의 주요 종교는 무엇일까요?', options:['유교','불교','도교','기독교'], correctIndex:1, explain:'고려는 불교를 중심으로 한 나라였어요.'},
+        {type:'mc', text:'다음 중 조선의 통치 이념은 무엇일까요?', options:['불교','유교(성리학)','도교','천도교'], correctIndex:1, explain:'조선은 유교(성리학)를 나라의 근본 이념으로 삼았어요.'},
+        {type:'mc', text:'팔만대장경이 보관되어 있는 곳은?', options:['불국사','해인사','통도사','화엄사'], correctIndex:1, explain:'경상남도 합천 해인사 장경판전에 보관돼 있어요.'},
+        {type:'mc', text:'다음 중 안중근 의사가 저격한 인물은?', options:['이토 히로부미','데라우치','메이지 천황','도조 히데키'], correctIndex:0, explain:'1909년, 하얼빈에서 이토 히로부미를 저격했어요.'},
+        {type:'mc', text:'대한민국 임시정부가 처음 세워진 도시는?', options:['도쿄','상하이','만주','하와이'], correctIndex:1, explain:'1919년, 중국 상하이에서 수립되었어요.'},
+        {type:'mc', text:'6·25 전쟁의 정전협정이 체결된 곳은?', options:['서울','평양','판문점','부산'], correctIndex:2, explain:'1953년 7월, 판문점에서 정전협정이 체결됐어요.'},
+        {type:'mc', text:'훈민정음이 반포된 연도는?', options:['1392년','1443년','1446년','1592년'], correctIndex:2, explain:'1443년경 창제되고, 1446년에 반포됐어요.'},
+        {type:'mc', text:'다음 중 몽골의 침입에 대항해 고려가 옮긴 임시 수도는?', options:['강화도','제주도','거제도','울릉도'], correctIndex:0, explain:'1232년, 고려 조정은 강화도로 도읍을 옮겼어요.'},
+        {type:'mc', text:'유관순 열사가 만세운동을 벌인 곳은?', options:['서울 탑골공원','천안 아우내장터','부산','대구'], correctIndex:1, explain:'충남 천안의 아우내장터에서 만세운동을 이끌었어요.'},
+        {type:'mc', text:'다음 중 대한제국을 선포한 왕(황제)은?', options:['고종','순종','철종','정조'], correctIndex:0, explain:'고종이 1897년 대한제국을 선포하고 황제로 즉위했어요.'}
+      ]
+    },
+    "객관식 중급": {
+      pool: [],
+      questions: [
+        {type:'mc', text:'살수대첩에서 을지문덕이 물리친 나라는?', options:['당','수','거란','몽골'], correctIndex:1, explain:'612년, 수나라의 대군을 물리쳤어요.'},
+        {type:'mc', text:'묘청이 천도를 주장한 도시는?', options:['개경','서경(평양)','강화도','한양'], correctIndex:1, explain:'서경 천도와 칭제건원을 주장했어요.'},
+        {type:'mc', text:'무신정변이 일어난 연도는?', options:['1135년','1170년','1231년','1270년'], correctIndex:1, explain:'정중부 등이 정변을 일으켰어요.'},
+        {type:'mc', text:'몽골에 항쟁한 고려의 특수부대는?', options:['별무반','삼별초','훈련도감','장용영'], correctIndex:1, explain:'끝까지 몽골에 맞서 싸운 부대예요.'},
+        {type:'mc', text:'계유정난으로 왕위에 오른 인물은?', options:['문종','단종','세조','성종'], correctIndex:2, explain:'세조는 단종을 몰아내고 왕위에 올랐어요.'},
+        {type:'mc', text:'임진왜란 때 조선을 도운 나라는?', options:['명','청','원','요'], correctIndex:0, explain:'명나라가 군대를 보내 도왔어요.'},
+        {type:'mc', text:'병자호란 때 조선이 항복한 나라는?', options:['명','후금(청)','몽골','일본'], correctIndex:1, explain:'남한산성에서 항전하다 청에 항복했어요.'},
+        {type:'mc', text:'영조와 함께 탕평책으로 유명한 왕은?', options:['정조','세종','태종','성종'], correctIndex:0, explain:'영조와 정조는 탕평 정치를 이어갔어요.'},
+        {type:'mc', text:'갑신정변을 일으킨 세력은?', options:['위정척사파','급진개화파','동학교도','의병'], correctIndex:1, explain:'김옥균 등 급진개화파가 일으켰어요.'},
+        {type:'mc', text:'동학농민운동이 처음 시작된 지역은?', options:['고부(전라도)','공주(충청도)','서울','평양'], correctIndex:0, explain:'고부 군수의 학정에 맞서 봉기했어요.'},
+        {type:'mc', text:'을사늑약으로 조선(대한제국)이 빼앗긴 권리는?', options:['군사권','외교권','조세권','사법권'], correctIndex:1, explain:'외교권을 빼앗기고 통감부가 설치됐어요.'},
+        {type:'mc', text:'헤이그 특사 사건 이후 벌어진 일은?', options:['대한제국 독립 인정','고종 강제 퇴위','조선 개항','갑오개혁'], correctIndex:1, explain:'특사 파견이 빌미가 되어 고종이 퇴위당했어요.'},
+        {type:'mc', text:'봉오동 전투를 이끈 인물은?', options:['김좌진','홍범도','안중근','윤봉길'], correctIndex:1, explain:'홍범도 장군이 이끈 대표적인 승리예요.'},
+        {type:'mc', text:'청산리 대첩을 이끈 인물은?', options:['김좌진','홍범도','이봉창','나석주'], correctIndex:0, explain:'김좌진의 북로군정서가 중심이 되었어요.'},
+        {type:'mc', text:'모스크바 3국 외상회의에서 결정(논의)된 것은?', options:['즉시 독립','신탁통치 논의','남북분단 확정','6·25전쟁 개전'], correctIndex:1, explain:'한반도 신탁통치 문제가 논의됐어요.'},
+        {type:'mc', text:'4·19 혁명의 직접적 계기가 된 사건은?', options:['3·15 부정선거','6·25전쟁','유신헌법','5·18민주화운동'], correctIndex:0, explain:'부정선거에 항의하며 혁명이 일어났어요.'},
+        {type:'mc', text:'5·16 군사정변을 일으킨 인물은?', options:['이승만','박정희','전두환','노태우'], correctIndex:1, explain:'박정희가 군사정변으로 권력을 잡았어요.'},
+        {type:'mc', text:'유신헌법이 선포된 연도는?', options:['1961년','1972년','1979년','1987년'], correctIndex:1, explain:'1972년 10월에 선포됐어요.'},
+        {type:'mc', text:'5·18 민주화운동이 일어난 도시는?', options:['서울','부산','광주','대구'], correctIndex:2, explain:'1980년, 광주에서 일어났어요.'},
+        {type:'mc', text:'6월 민주항쟁의 결과로 이루어진 것은?', options:['유신헌법 제정','대통령 직선제 개헌','국권피탈','6·25전쟁 발발'], correctIndex:1, explain:'6·29 선언 이후 직선제 개헌이 이루어졌어요.'}
+      ]
+    },
+    "객관식 상급": {
+      pool: [],
+      questions: [
+        {type:'mc', text:'근초고왕이 371년 전사시킨 고구려의 왕은?', options:['미천왕','고국원왕','광개토대왕','장수왕'], correctIndex:1, explain:'평양성 전투에서 고국원왕이 전사했어요.'},
+        {type:'mc', text:'장수왕의 남진정책으로 수도를 잃고 웅진으로 천도한 나라는?', options:['고구려','백제','신라','가야'], correctIndex:1, explain:'백제는 한성을 잃고 웅진(공주)으로 옮겼어요.'},
+        {type:'mc', text:'신라 진흥왕이 정비한 청소년 수양단체는?', options:['화랑도','향약','서원','향교'], correctIndex:0, explain:'화랑도를 국가 조직으로 정비했어요.'},
+        {type:'mc', text:'발해가 스스로 계승한 나라로 표방한 것은?', options:['신라','고구려','백제','가야'], correctIndex:1, explain:'발해는 고구려 계승 의식을 표방했어요.'},
+        {type:'mc', text:'시무 28조를 올려 유교 정치를 건의한 인물은?', options:['최치원','최승로','김부식','정도전'], correctIndex:1, explain:'고려 성종에게 올린 개혁안이에요.'},
+        {type:'mc', text:'거란의 2차 침입 구실이 된 사건은?', options:['강조의 정변','이자겸의 난','무신정변','삼별초 항쟁'], correctIndex:0, explain:'강조가 목종을 폐위한 사건을 구실로 삼았어요.'},
+        {type:'mc', text:'무신정변보다 먼저 일어난 사건은?', options:['이자겸의 난','삼별초 항쟁','위화도 회군','계유정난'], correctIndex:0, explain:'이자겸의 난(1126)이 무신정변(1170)보다 앞서요.'},
+        {type:'mc', text:'공민왕이 무력으로 되찾은 원의 통치기구는?', options:['쌍성총관부','동녕부','탐라총관부','정동행성'], correctIndex:0, explain:'원의 간섭에서 벗어나려는 개혁 중 하나였어요.'},
+        {type:'mc', text:'6조 직계제를 실시해 강화하려 한 것은?', options:['의정부 권한','왕권','지방 세력','사림 세력'], correctIndex:1, explain:'왕이 6조에서 직접 보고받아 왕권을 강화했어요.'},
+        {type:'mc', text:'기묘사화로 큰 피해를 입은 정치 세력은?', options:['훈구파','사림파','무신','외척'], correctIndex:1, explain:'조광조 등 사림파가 큰 타격을 입었어요.'},
+        {type:'mc', text:'임진왜란 중 설치되어 이후에도 유지된 군사 조직은?', options:['별무반','훈련도감','삼별초','장용영'], correctIndex:1, explain:'임진왜란 중 설치된 훈련도감이에요.'},
+        {type:'mc', text:'균역법으로 줄어든 백성의 부담은?', options:['토지세','군포','공납','환곡'], correctIndex:1, explain:'군포 부담을 2필에서 1필로 줄였어요.'},
+        {type:'mc', text:'신해통공으로 폐지된 시전 상인의 특권은?', options:['금난전권','과전법','대동법','환곡제'], correctIndex:0, explain:'시전 상인의 독점 판매권을 폐지했어요.'},
+        {type:'mc', text:'흥선대원군이 대폭 정리한 것은?', options:['향교','서원','성균관','규장각'], correctIndex:1, explain:'붕당의 근거지로 여겨지던 서원을 정리했어요.'},
+        {type:'mc', text:'강화도 조약의 성격으로 옳은 것은?', options:['평등조약','불평등조약','방어조약','동맹조약'], correctIndex:1, explain:'조선에 불리한 불평등 조약이었어요.'},
+        {type:'mc', text:'갑오개혁으로 공식 폐지된 것은?', options:['과거제·신분제','왕권','조세제도','균역법'], correctIndex:0, explain:'과거제와 신분제가 공식적으로 폐지됐어요.'},
+        {type:'mc', text:'아관파천으로 고종이 거처를 옮긴 곳은?', options:['일본 공사관','러시아 공사관','청 공사관','미국 공사관'], correctIndex:1, explain:'을미사변 이후 러시아 공사관으로 옮겼어요.'},
+        {type:'mc', text:'신간회의 성격으로 옳은 것은?', options:['민족주의 단독조직','좌우합작 조직','사회주의 단독조직','친일단체'], correctIndex:1, explain:'민족주의 계열과 사회주의 계열이 함께한 조직이에요.'},
+        {type:'mc', text:'대한민국 임시정부가 창설한 무장 조직은?', options:['의열단','한국광복군','신흥무관학교','독립협회'], correctIndex:1, explain:'1940년 충칭에서 한국광복군을 창설했어요.'},
+        {type:'mc', text:'유신헌법의 특징으로 옳은 것은?', options:['대통령 권한 강화','대통령 권한 축소','국회 권한 강화','지방자치 확대'], correctIndex:0, explain:'대통령에게 강력한 권한이 집중됐어요.'}
+      ]
+    },
+    "한능검 맛보기 - 기본(4지선다)": {
+      pool: [],
+      questions: [
+        {type:'mc', text:"'범금 8조'를 두어 사회 질서를 유지했던 나라에 대한 설명으로 옳은 것은?", options:['낙랑과 왜에 철을 수출하였다','한의 침략으로 멸망하였다','졸본에 도읍을 정하였다','서옥제라는 풍습이 있었다'], correctIndex:1, explain:'고조선은 범금 8조로 사회 질서를 유지했고, 한 무제의 침략으로 멸망했어요.'},
+        {type:'mc', text:'다음 업적을 남긴 신라의 왕은?\n— 황룡사를 짓고 불교를 장려함, 한강 유역을 차지하여 영토를 크게 넓힘, 화랑도를 국가적인 조직으로 개편함', options:['지증왕','법흥왕','진흥왕','무열왕'], correctIndex:2, explain:'진흥왕은 영토 확장과 화랑도 정비로 잘 알려진 왕이에요.'},
+        {type:'mc', text:'신라에서 관직 승진에 제한을 두었던 신분 제도는?', options:['골품제','과거제','진대법','기인 제도'], correctIndex:0, explain:'골품제는 신라의 폐쇄적인 신분 제도로, 관직 승진의 한계가 있었어요.'},
+        {type:'mc', text:'당에 파견되어 태종에게 군사적 지원을 약속받은 신라의 인물은?', options:['김유신','김춘추','연개소문','흑치상지'], correctIndex:1, explain:'김춘추는 당과의 동맹(나당동맹)을 성사시켰어요.'},
+        {type:'mc', text:'고려가 국경 지역에 두었던 특별 행정 구역은?', options:['8도','9주 5소경','22담로','북계와 동계'], correctIndex:3, explain:'고려는 국경 지역인 북계와 동계에 병마사를 파견해 다스렸어요.'},
+        {type:'mc', text:'귀주에서 침입한 거란군을 크게 물리친 고려의 인물은?', options:['서희','양규','강감찬','김윤후'], correctIndex:2, explain:'강감찬은 1019년 귀주대첩에서 큰 승리를 거두었어요.'},
+        {type:'mc', text:'현재 전하는 우리나라에서 가장 오래된 역사서로, 김부식 등이 편찬한 책은?', options:['삼국사기','삼국유사','제왕운기','고려사절요'], correctIndex:0, explain:'삼국사기는 고려 인종 때 김부식이 왕명을 받아 편찬했어요.'},
+        {type:'mc', text:'벽란도가 국제 무역항으로 번성했던 시대의 모습으로 옳은 것은?', options:['독서삼품과를 실시하였다','연등회와 팔관회를 개최하였다','전성기에 해동성국이라 불렸다','소도라고 불리는 신성 지역이 있었다'], correctIndex:1, explain:'벽란도는 고려 시대의 국제 무역항이었고, 고려는 연등회·팔관회 같은 불교 행사를 열었어요.'},
+        {type:'mc', text:'역대 왕들의 역사를 연대순으로 기록하여 유네스코 세계기록유산에 등재된 책은?', options:['경국대전','동의보감','조선왕조실록','직지심체요절'], correctIndex:2, explain:'태조부터 철종까지의 기록을 담은 조선왕조실록이에요.'},
+        {type:'mc', text:'조선 후기 서당, 대장간 등 서민들의 일상생활 모습을 생생하게 그린 화가는?', options:['김홍도','신윤복','이중섭','신사임당'], correctIndex:0, explain:'김홍도는 풍속화로 유명한 조선 후기의 화가예요.'}
+      ]
+    },
+    "한능검 맛보기 - 심화(5지선다)": {
+      pool: [],
+      questions: [
+        {type:'mc5', text:'읍락 간의 경계를 중시하는 책화라는 풍습이 있었고, 특산물로 단궁·과하마·반어피가 유명했던 나라는?', options:['부여','옥저','동예','삼한','고구려'], correctIndex:2, explain:'동예는 책화라는 독특한 풍습과 특산물로 잘 알려진 나라예요.'},
+        {type:'mc5', text:'다음에서 설명하는 인물이 시행한 정책으로 옳은 것은?\n— 후고구려를 세우고 철원으로 도읍을 옮겼으며, 나라 이름을 태봉이라 하였다.', options:['광평성 등 정치 기구를 정비하였다','노비안검법을 실시하였다','훈요 10조를 남겼다','사심관 제도를 실시하였다','기인 제도를 실시하였다'], correctIndex:0, explain:'궁예는 태봉을 세우고 광평성 등의 정치 기구를 정비했어요.'},
+        {type:'mc5', text:'다음 왕의 재위 기간에 있었던 사실로 옳은 것은?\n— 강조의 정변으로 왕위에 올랐고, 거란의 침입으로 나주까지 피란하였다.', options:['초조대장경 조판이 시작되었다','최승로가 시무 28조를 건의하였다','윤관의 건의로 별무반이 조직되었다','왕건이 후삼국을 통일하였다','광덕·준풍 등 독자적인 연호를 사용하였다'], correctIndex:0, explain:'현종 때 거란의 침입을 물리치고자 초조대장경 조판을 시작했어요.'},
+        {type:'mc5', text:'당의 장수 소정방이 백제를 정벌한 기록을 새겨 한때 평제탑이라고도 불렸으며, 익산 미륵사지 석탑과 함께 백제를 대표하는 석탑은?', options:['정림사지 5층 석탑','분황사 모전 석탑','불국사 3층 석탑','화엄사 4사자 3층 석탑','월정사 8각 9층 석탑'], correctIndex:0, explain:'부여 정림사지 5층 석탑에 대한 설명이에요.'},
+        {type:'mc5', text:'청계천 준설 공사에 참여한 관리들에게 잔치를 베풀었고, 균역법을 실시하여 백성의 군포 부담을 줄인 왕은?', options:['숙종','경종','영조','정조','순조'], correctIndex:2, explain:'영조는 균역법 실시와 준천 사업으로 잘 알려져 있어요.'},
+        {type:'mc5', text:'병인박해 이후 20년 만에 맺어진 조약으로, 조선에서 이 나라의 천주교 선교사가 이전보다 자유롭게 활동할 수 있게 되었다. 이 나라는?', options:['미국','영국','프랑스','러시아','독일'], correctIndex:2, explain:'1886년 조불수호통상조약으로 프랑스 선교사의 활동이 자유로워졌어요.'},
+        {type:'mc5', text:'1880년, 개화 정책 추진을 총괄하기 위해 설치된 기구는?', options:['삼군부','통리기무아문','군국기무처','의정부','비변사'], correctIndex:1, explain:'통리기무아문은 개화 정책을 총괄한 기구예요.'},
+        {type:'mc5', text:'1915년 대구에서 군자금을 모집하고 친일파를 처단하기 위해 조직된 단체는?', options:['신민회','대한광복회','독립의군부','조선독립동맹','의열단'], correctIndex:1, explain:'박상진이 조직한 대한광복회에 대한 설명이에요.'},
+        {type:'mc5', text:'1907년, 일본에서 빌린 나랏빚 1,300만 원을 갚아 국권을 지키고자 전국적으로 벌어진 이 운동에 대한 설명으로 옳은 것은?', options:['대한매일신보 등의 지원을 받아 확산되었다','조선 민립대학 기성회가 모금 활동을 주도하였다','백정에 대한 사회적 차별 철폐를 목적으로 하였다','자작회, 토산 애용 부인회 등의 단체가 참여하였다','대한천일은행이 설립되는 계기가 되었다'], correctIndex:0, explain:'국채보상운동은 대한매일신보 등 언론의 지원을 받아 전국으로 확산되었어요.'},
+        {type:'mc5', text:'세종이 젊고 재능 있는 관리들에게 휴가를 주어 학문과 독서에 전념하게 한 제도는?', options:['사가독서제','집현전','규장각','홍문관','성균관'], correctIndex:0, explain:'사가독서제는 관리들에게 휴가를 주어 학문에 전념하게 한 세종의 제도예요.'}
+      ]
+    }
+  };
+  var currentName = "OX 초급";
+
+  var presetSelect = document.getElementById('presetSelect');
+  var quizEyebrow = document.getElementById('quizEyebrow');
+  var quizQuestion = document.getElementById('quizQuestion');
+  var answerArea = document.getElementById('answerArea');
+  var feedbackText = document.getElementById('feedbackText');
+  var explainText = document.getElementById('explainText');
+  var scoreInfo = document.getElementById('scoreInfo');
+  var restartBtn = document.getElementById('restartBtn');
+
+  var editOverlay = document.getElementById('editOverlay');
+  var qList = document.getElementById('qList');
+  var presetNameInput = document.getElementById('presetNameInput');
+
+  var qEditOverlay = document.getElementById('qEditOverlay');
+  var qEditTitle = document.getElementById('qEditTitle');
+  var typeOxBtn = document.getElementById('typeOxBtn');
+  var typeMcBtn = document.getElementById('typeMcBtn');
+  var typeMc5Btn = document.getElementById('typeMc5Btn');
+  var oxFields = document.getElementById('oxFields');
+  var mcFields = document.getElementById('mcFields');
+  var mc5Fields = document.getElementById('mc5Fields');
+  var qTextInput = document.getElementById('qTextInput');
+  var oxAnswerO = document.getElementById('oxAnswerO');
+  var oxAnswerX = document.getElementById('oxAnswerX');
+  var explainInput = document.getElementById('explainInput');
+  var editingIdx = -1;
+  var draftType = 'ox';
+  var draftOxAnswer = true;
+  var draftCorrectIndex = 0;
+  var draftCorrectIndex5 = 0;
+
+  var resultOverlay = document.getElementById('resultOverlay');
+  var resultText = document.getElementById('resultText');
+  var confettiLayer = document.getElementById('confettiLayer');
+
+  var order = [];
+  var qPointer = 0;
+  var score = 0;
+  var mode = 'answer';
+
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function refreshPresetSelect(){
+    presetSelect.innerHTML = '';
+    Object.keys(presets).forEach(function(name){
+      var opt = document.createElement('option');
+      opt.value = name; opt.textContent = name;
+      if(name === currentName) opt.selected = true;
+      presetSelect.appendChild(opt);
+    });
+  }
+
+  function shuffle(arr){
+    for(var i=arr.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t = arr[i]; arr[i]=arr[j]; arr[j]=t;
+    }
+    return arr;
+  }
+
+  var ROUND_SIZE = 10;
+
+  function refillPool(name){
+    var p = presets[name];
+    if(!p.pool) p.pool = [];
+    var qs = p.questions;
+    var need = Math.min(ROUND_SIZE, qs.length);
+    while(p.pool.length < need && qs.length > 0){
+      p.pool = p.pool.concat(shuffle(qs.map(function(_,i){ return i; })));
+    }
+  }
+
+  function startRound(){
+    var qs = presets[currentName].questions;
+    var roundSize = Math.min(ROUND_SIZE, qs.length);
+    refillPool(currentName);
+    order = presets[currentName].pool.splice(0, roundSize);
+    qPointer = 0;
+    score = 0;
+    mode = 'answer';
+    showQuestion();
+  }
+
+  function showQuestion(){
+    var qs = presets[currentName].questions;
+    if(qPointer >= order.length){
+      finishRound();
+      return;
+    }
+    var q = qs[order[qPointer]];
+    quizEyebrow.textContent = '문제 ' + (qPointer+1) + ' / ' + order.length;
+    quizQuestion.textContent = q.text;
+    feedbackText.textContent = '';
+    feedbackText.className = 'feedback-text';
+    explainText.textContent = '';
+    mode = 'answer';
+    renderAnswerArea(q);
+    updateScoreInfo();
+  }
+
+  function renderAnswerArea(q){
+    answerArea.innerHTML = '';
+    if(q.type === 'ox'){
+      var row = document.createElement('div');
+      row.className = 'ox-row';
+      ['O','X'].forEach(function(label){
+        var btn = document.createElement('button');
+        btn.className = 'ox-btn answer-btn';
+        btn.textContent = label;
+        btn.addEventListener('click', function(){ onAnswer(label === 'O', btn); });
+        row.appendChild(btn);
+      });
+      answerArea.appendChild(row);
+    } else {
+      var list = document.createElement('div');
+      list.className = 'mc-list';
+      q.options.forEach(function(opt, idx){
+        var btn = document.createElement('button');
+        btn.className = 'mc-btn answer-btn';
+        btn.textContent = (idx+1) + '. ' + opt;
+        btn.addEventListener('click', function(){ onAnswer(idx, btn); });
+        list.appendChild(btn);
+      });
+      answerArea.appendChild(list);
+    }
+  }
+
+  function updateScoreInfo(){
+    scoreInfo.textContent = '맞은 개수 ' + score + ' / ' + Math.min(qPointer, order.length) + ' (진행 중 ' + Math.min(qPointer+1,order.length) + '/' + order.length + ')';
+  }
+
+  function finishRound(){
+    resultText.textContent = order.length + '문제 중 ' + score + '개 맞혔어요!';
+    resultOverlay.classList.remove('hidden');
+    if(score === order.length) launchConfetti();
+  }
+
+  function onAnswer(picked, btnEl){
+    if(mode !== 'answer') return;
+    mode = 'locked';
+    var qs = presets[currentName].questions;
+    var q = qs[order[qPointer]];
+    var buttons = answerArea.querySelectorAll('.answer-btn');
+    Array.prototype.forEach.call(buttons, function(b){ b.disabled = true; });
+
+    var isCorrect;
+    if(q.type === 'ox'){
+      isCorrect = (picked === q.answer);
+      btnEl.classList.add(isCorrect ? 'correct' : 'wrong');
+      if(!isCorrect){
+        var correctLabel = q.answer ? 'O' : 'X';
+        Array.prototype.forEach.call(buttons, function(b){
+          if(b.textContent === correctLabel) b.classList.add('reveal');
+        });
+      }
+    } else {
+      isCorrect = (picked === q.correctIndex);
+      btnEl.classList.add(isCorrect ? 'correct' : 'wrong');
+      if(!isCorrect){
+        buttons[q.correctIndex].classList.add('reveal');
+      }
+    }
+
+    if(isCorrect){
+      feedbackText.textContent = '정확해요!';
+      feedbackText.className = 'feedback-text correct';
+      score++;
+    } else {
+      feedbackText.textContent = '아쉬워요!';
+      feedbackText.className = 'feedback-text wrong';
+    }
+    if(q.explain) explainText.textContent = q.explain;
+    updateScoreInfo();
+
+    setTimeout(function(){
+      qPointer++;
+      showQuestion();
+    }, 1700);
+  }
+
+  restartBtn.addEventListener('click', startRound);
+  document.getElementById('closeResult').addEventListener('click', function(){
+    resultOverlay.classList.add('hidden');
+    startRound();
+  });
+
+  presetSelect.addEventListener('change', function(){
+    currentName = presetSelect.value;
+    startRound();
+  });
+
+  // ---------- 편집 패널 ----------
+  function renderEditPanel(){
+    var qs = presets[currentName].questions;
+    qList.innerHTML = '';
+    qs.forEach(function(q, idx){
+      var card = document.createElement('div');
+      card.className = 'q-card';
+      var answerPreview = q.type === 'ox' ? ('정답: ' + (q.answer ? 'O' : 'X')) : ('정답: ' + (q.correctIndex+1) + '번 ' + q.options[q.correctIndex]);
+      card.innerHTML =
+        '<span class="q-tag ' + q.type + '">' + (q.type === 'ox' ? 'OX' : (q.type === 'mc5' ? '심화(5지)' : '객관식')) + '</span>' +
+        '<div class="q-card-main"><div class="q-text-preview"></div><div class="q-answer-preview"></div></div>' +
+        '<button class="q-del" data-idx="'+idx+'">×</button>';
+      card.querySelector('.q-text-preview').textContent = q.text;
+      card.querySelector('.q-answer-preview').textContent = answerPreview;
+      card.querySelector('.q-card-main').addEventListener('click', function(){ openEditExisting(idx); });
+      card.querySelector('.q-del').addEventListener('click', function(e){
+        if(qs.length <= 2){ alert('최소 2개의 문제가 있어야 합니다.'); return; }
+        qs.splice(idx,1);
+        presets[currentName].pool = [];
+        renderEditPanel();
+      });
+      qList.appendChild(card);
+    });
+    presetNameInput.value = '';
+  }
+
+  function setDraftType(type){
+    draftType = type;
+    typeOxBtn.classList.toggle('active', type === 'ox');
+    typeMcBtn.classList.toggle('active', type === 'mc');
+    typeMc5Btn.classList.toggle('active', type === 'mc5');
+    oxFields.style.display = type === 'ox' ? 'block' : 'none';
+    mcFields.style.display = type === 'mc' ? 'block' : 'none';
+    mc5Fields.style.display = type === 'mc5' ? 'block' : 'none';
+  }
+  typeOxBtn.addEventListener('click', function(){ setDraftType('ox'); });
+  typeMcBtn.addEventListener('click', function(){ setDraftType('mc'); });
+  typeMc5Btn.addEventListener('click', function(){ setDraftType('mc5'); });
+
+  function setOxAnswer(val){
+    draftOxAnswer = val;
+    oxAnswerO.classList.toggle('selected', val === true);
+    oxAnswerX.classList.toggle('selected', val === false);
+  }
+  oxAnswerO.addEventListener('click', function(){ setOxAnswer(true); });
+  oxAnswerX.addEventListener('click', function(){ setOxAnswer(false); });
+
+  function setCorrectIndex(i){
+    draftCorrectIndex = i;
+    Array.prototype.forEach.call(document.querySelectorAll('.opt-radio'), function(el){
+      el.classList.toggle('selected', +el.getAttribute('data-i') === i);
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.opt-radio'), function(el){
+    el.addEventListener('click', function(){ setCorrectIndex(+el.getAttribute('data-i')); });
+  });
+
+  function setCorrectIndex5(i){
+    draftCorrectIndex5 = i;
+    Array.prototype.forEach.call(document.querySelectorAll('.opt-radio5'), function(el){
+      el.classList.toggle('selected', +el.getAttribute('data-i') === i);
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.opt-radio5'), function(el){
+    el.addEventListener('click', function(){ setCorrectIndex5(+el.getAttribute('data-i')); });
+  });
+
+  function openEditExisting(idx){
+    editingIdx = idx;
+    var q = presets[currentName].questions[idx];
+    qEditTitle.textContent = '문제 수정';
+    qTextInput.value = q.text;
+    explainInput.value = q.explain || '';
+    if(q.type === 'ox'){
+      setDraftType('ox');
+      setOxAnswer(q.answer);
+    } else if(q.type === 'mc5'){
+      setDraftType('mc5');
+      for(var i=0;i<5;i++) document.getElementById('opt5_'+i).value = q.options[i] || '';
+      setCorrectIndex5(q.correctIndex);
+    } else {
+      setDraftType('mc');
+      document.getElementById('opt0').value = q.options[0] || '';
+      document.getElementById('opt1').value = q.options[1] || '';
+      document.getElementById('opt2').value = q.options[2] || '';
+      document.getElementById('opt3').value = q.options[3] || '';
+      setCorrectIndex(q.correctIndex);
+    }
+    qEditOverlay.classList.remove('hidden');
+    setTimeout(function(){ qTextInput.focus(); }, 50);
+  }
+
+  document.getElementById('addQuestionBtn').addEventListener('click', function(){
+    editingIdx = -1;
+    qEditTitle.textContent = '새 문제 입력';
+    qTextInput.value = '';
+    explainInput.value = '';
+    document.getElementById('opt0').value = '';
+    document.getElementById('opt1').value = '';
+    document.getElementById('opt2').value = '';
+    document.getElementById('opt3').value = '';
+    for(var i=0;i<5;i++) document.getElementById('opt5_'+i).value = '';
+    setDraftType('ox');
+    setOxAnswer(true);
+    setCorrectIndex(0);
+    setCorrectIndex5(0);
+    qEditOverlay.classList.remove('hidden');
+    setTimeout(function(){ qTextInput.focus(); }, 50);
+  });
+
+  document.getElementById('qEditConfirm').addEventListener('click', function(){
+    var text = qTextInput.value.trim();
+    if(!text){ alert('문제 내용을 입력해 주세요.'); return; }
+    var explain = explainInput.value.trim();
+    var newQ;
+    if(draftType === 'ox'){
+      newQ = {type:'ox', text:text, answer:draftOxAnswer, explain:explain};
+    } else if(draftType === 'mc5'){
+      var opts5 = [];
+      for(var i=0;i<5;i++) opts5.push(document.getElementById('opt5_'+i).value.trim());
+      if(opts5.some(function(o){ return !o; })){
+        alert('보기 5개를 모두 입력해 주세요.');
+        return;
+      }
+      newQ = {type:'mc5', text:text, options:opts5, correctIndex:draftCorrectIndex5, explain:explain};
+    } else {
+      var opts = [
+        document.getElementById('opt0').value.trim(),
+        document.getElementById('opt1').value.trim(),
+        document.getElementById('opt2').value.trim(),
+        document.getElementById('opt3').value.trim()
+      ];
+      if(opts.some(function(o){ return !o; })){
+        alert('보기 4개를 모두 입력해 주세요.');
+        return;
+      }
+      newQ = {type:'mc', text:text, options:opts, correctIndex:draftCorrectIndex, explain:explain};
+    }
+    var qs = presets[currentName].questions;
+    if(editingIdx === -1) qs.push(newQ);
+    else qs[editingIdx] = newQ;
+    presets[currentName].pool = [];
+    qEditOverlay.classList.add('hidden');
+    renderEditPanel();
+  });
+  document.getElementById('qEditCancel').addEventListener('click', function(){
+    qEditOverlay.classList.add('hidden');
+  });
+
+  document.getElementById('editBtn').addEventListener('click', function(){
+    renderEditPanel();
+    editOverlay.classList.remove('hidden');
+  });
+  document.getElementById('closeEdit').addEventListener('click', function(){
+    editOverlay.classList.add('hidden');
+    startRound();
+  });
+  document.getElementById('saveAsBtn').addEventListener('click', function(){
+    var name = presetNameInput.value.trim();
+    if(!name){ alert('저장할 이름을 입력해 주세요.'); return; }
+    presets[name] = { pool: [], questions: JSON.parse(JSON.stringify(presets[currentName].questions)) };
+    currentName = name;
+    refreshPresetSelect();
+    renderEditPanel();
+  });
+  document.getElementById('deletePresetBtn').addEventListener('click', function(){
+    var names = Object.keys(presets);
+    if(names.length <= 1){ alert('마지막 남은 목록은 삭제할 수 없습니다.'); return; }
+    delete presets[currentName];
+    currentName = Object.keys(presets)[0];
+    refreshPresetSelect();
+    editOverlay.classList.add('hidden');
+    startRound();
+  });
+
+  function launchConfetti(){
+    var colors = ["#1F5C8B","#C1362E","#E3A72E","#3E7A5D","#CB6A2F"];
+    for(var i=0;i<26;i++){
+      var el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = (Math.random()*100) + 'vw';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      var dur = 1.6 + Math.random()*1.2;
+      el.style.animationDuration = dur + 's';
+      el.style.animationDelay = (Math.random()*0.3) + 's';
+      confettiLayer.appendChild(el);
+      (function(node, d){ setTimeout(function(){ node.remove(); }, (d+0.5)*1000); })(el, dur);
+    }
+  }
+
+  refreshPresetSelect();
+  startRound();
+})();
+</script>
+</body>
+</html>

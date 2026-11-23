@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>초성 퀴즈</title>
+<style>
+:root{
+  --bg:#F7F1E1;--paper:#FBF8F0;--ink:#262220;--ink-soft:#6b6259;
+  --blue:#1F5C8B;--red:#C1362E;--yellow:#E3A72E;--green:#3E7A5D;--cta:#CB6A2F;--purple:#7B3F6B;--teal:#2E7DA3;
+  --line:rgba(38,34,32,0.16);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.topbar a.back{min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:800;font-size:14px;padding:0 12px;}
+.topbar .ttl{font-size:20px;font-weight:900;letter-spacing:-0.3px;}
+.topbar .sub{font-size:12px;color:var(--ink-soft);font-weight:600;margin-left:auto;text-align:right;}
+.topbar a.back{white-space:nowrap;flex:none;}
+.topbar .ttl{white-space:nowrap;}
+@media(max-width:560px){.topbar{padding:10px 12px;gap:10px;}.topbar .sub{display:none;}.topbar .ttl{font-size:18px;}.app{padding:12px 12px 32px;}}
+.app{max-width:1000px;margin:0 auto;padding:16px 16px 40px;}
+button{font-family:inherit;cursor:pointer;border:0;}
+.btn{min-height:52px;padding:0 22px;border-radius:14px;font-size:17px;font-weight:800;color:#fff;background:var(--cta);box-shadow:0 4px 0 rgba(0,0,0,0.18);}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.18);}
+.btn.blue{background:var(--blue);} .btn.red{background:var(--red);} .btn.green{background:var(--green);}
+.btn.purple{background:var(--purple);} .btn.teal{background:var(--teal);}
+.btn.yellow{background:var(--yellow);color:var(--ink);}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line);box-shadow:none;}
+.btn.small{min-height:44px;font-size:15px;padding:0 14px;}
+.btn[disabled]{opacity:.4;pointer-events:none;}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.center{text-align:center;}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;}
+select.sel{min-height:48px;font-size:16px;font-weight:700;border-radius:12px;border:1px solid var(--line);background:var(--paper);padding:0 12px;color:var(--ink);font-family:inherit;}
+.stepper{display:inline-flex;align-items:center;gap:6px;}
+.stepper button{width:48px;height:48px;border-radius:12px;background:var(--paper);border:1px solid var(--line);font-size:24px;font-weight:900;color:var(--ink);}
+.stepper .val{min-width:44px;text-align:center;font-size:22px;font-weight:900;}
+.hint{font-size:13px;color:var(--ink-soft);font-weight:600;}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(38,34,32,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.ov.on{display:flex;}
+.modal{background:var(--paper);border-radius:22px;padding:22px;max-width:520px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.35);}
+.modal h2{margin:0 0 12px;font-size:22px;font-weight:900;}
+.modal .big{font-size:56px;text-align:center;line-height:1.1;margin:6px 0;}
+.modal .msg{font-size:18px;font-weight:700;text-align:center;line-height:1.5;margin:6px 0 16px;}
+.modal .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:200;}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:800;background:var(--bg);border:1px solid var(--line);}
+
+
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;}
+.prog{font-size:16px;font-weight:900;}
+.bar{flex:1;min-width:120px;height:14px;border-radius:99px;background:rgba(38,34,32,.12);overflow:hidden;}
+.bar i{display:block;height:100%;background:var(--purple);width:0;transition:width .3s;}
+.qbox{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:22px 16px;text-align:center;}
+.hintq{font-size:clamp(20px,4vw,30px);font-weight:800;line-height:1.5;word-break:keep-all;margin-bottom:18px;}
+.boxes{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+.bx{width:clamp(56px,13vw,92px);height:clamp(72px,16vw,112px);border-radius:16px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:clamp(34px,8vw,60px);font-weight:900;box-shadow:0 5px 0 rgba(0,0,0,.2);}
+.bx.rev{background:var(--paper);color:var(--ink);border:3px solid var(--green);}
+.bx.part{background:var(--teal);}
+.cnt{margin-top:12px;font-size:15px;font-weight:700;color:var(--ink-soft);}
+.acts2{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:18px;}
+.acts2 .btn{min-width:150px;min-height:64px;font-size:20px;}
+
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← 메뉴</a><div class="ttl">초성 퀴즈</div><div class="sub">여행바구니 · 어린이 역사체험</div></div>
+<div class="app">
+
+<div class="top">
+  <select class="sel" id="topic"></select>
+  <span class="prog" id="prog"></span>
+  <div class="bar"><i id="bar"></i></div>
+  <span class="pill" id="sc">⭐ 0</span>
+</div>
+<div class="qbox">
+  <div class="hintq" id="hq"></div>
+  <div class="boxes" id="bx"></div>
+  <div class="cnt" id="cnt"></div>
+  <div class="acts2" id="ac"></div>
+</div>
+<div class="hint center" style="margin-top:12px">아이들이 정답을 말하면 선생님이 정답을 확인하고 "맞혔어요"를 눌러요</div>
+
+</div>
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+<canvas id="confetti"></canvas>
+<script>
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+/* 셔플백: 문제 은행이 다 소진될 때까지 중복 없이 n개씩 뽑는다 */
+function makeBag(){return {pool:[]};}
+function takeRound(bag,all,n){
+  n=Math.min(n,all.length);
+  const out=[];
+  while(out.length<n){
+    if(bag.pool.length===0){
+      let fresh=shuffle(all.map((_,i)=>i));
+      // 직전 라운드와 연속 중복 방지
+      fresh=fresh.filter(i=>!out.includes(i)).concat(fresh.filter(i=>out.includes(i)));
+      bag.pool=fresh;
+    }
+    const i=bag.pool.shift();
+    if(!out.includes(i))out.push(i);
+  }
+  return out.map(i=>all[i]);
+}
+/* 소리 */
+let _ac=null;
+function beep(f,d,type){
+  try{
+    _ac=_ac||new (window.AudioContext||window.webkitAudioContext)();
+    const o=_ac.createOscillator(),g=_ac.createGain();
+    o.type=type||'sine';o.frequency.value=f;g.gain.value=0.12;
+    o.connect(g);g.connect(_ac.destination);o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001,_ac.currentTime+(d||0.15));
+    o.stop(_ac.currentTime+(d||0.15)+0.02);
+  }catch(e){}
+}
+function sndOk(){beep(660,.12);setTimeout(()=>beep(880,.18),110);}
+function sndNo(){beep(220,.25,'square');}
+function sndTick(){beep(520,.06);}
+function sndAlarm(){let k=0;const t=setInterval(()=>{beep(k%2?880:660,.22,'triangle');if(++k>=6)clearInterval(t);},260);}
+/* 폭죽 */
+function confetti(){
+  let cv=$('#confetti');if(!cv)return;
+  const ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return;
+  cv.width=innerWidth;cv.height=innerHeight;
+  const cols=['#1F5C8B','#C1362E','#E3A72E','#3E7A5D','#CB6A2F','#7B3F6B','#2E7DA3'];
+  const ps=Array.from({length:90},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.4,
+    vx:(Math.random()-.5)*4,vy:2+Math.random()*4,s:6+Math.random()*8,c:pick(cols),r:Math.random()*6}));
+  let f=0;
+  (function step(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.2;ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);ctx.restore();});
+    if(++f<110)requestAnimationFrame(step);else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+/* 모달: body는 HTML, buttons=[{t,cls,fn}] */
+function modal(o){
+  const ov=$('#ov'),m=$('#modal');
+  m.innerHTML=(o.title?'<h2>'+esc(o.title)+'</h2>':'')+(o.icon?'<div class="big">'+o.icon+'</div>':'')+
+    (o.msg?'<div class="msg">'+o.msg+'</div>':'')+(o.html||'')+'<div class="acts" id="macts"></div>';
+  const acts=$('#macts');
+  (o.buttons||[{t:'확인'}]).forEach(b=>{
+    const el=document.createElement('button');el.className='btn '+(b.cls||'');el.textContent=b.t;
+    el.onclick=()=>{ if(b.keep!==true)closeModal(); if(b.fn)b.fn(); };
+    acts.appendChild(el);
+  });
+  ov.classList.add('on');
+}
+function closeModal(){$('#ov').classList.remove('on');}
+
+const BANK={"인물": [["세종대왕", "한글을 만든 임금"], ["이순신", "거북선을 앞세워 왜군을 물리친 장군"], ["광개토대왕", "고구려의 영토를 크게 넓힌 왕"], ["유관순", "3·1 운동 때 만세를 외친 소녀"], ["안중근", "하얼빈에서 이토 히로부미를 처단한 독립운동가"], ["김구", "『백범일지』를 쓴 독립운동가"], ["장영실", "물시계 자격루를 만든 과학자"], ["허준", "『동의보감』을 쓴 의학자"], ["정약용", "거중기를 설계해 수원 화성 쌓는 것을 도운 학자"], ["김정호", "「대동여지도」를 만든 지리학자"], ["신사임당", "율곡 이이의 어머니이자 오만 원 지폐 속 인물"], ["을지문덕", "살수에서 수나라 군대를 물리친 고구려 장군"], ["강감찬", "귀주에서 거란군을 크게 물리친 고려 장군"], ["왕건", "고려를 세운 임금"], ["이성계", "조선을 세운 임금"], ["주몽", "고구려를 세운 사람"], ["박혁거세", "신라를 세운 사람"], ["대조영", "발해를 세운 사람"], ["장보고", "청해진을 세운 신라의 해상왕"], ["윤봉길", "훙커우 공원에서 폭탄을 던진 독립운동가"], ["정조", "수원 화성을 짓게 한 조선의 임금"], ["선덕여왕", "신라의 첫 번째 여성 임금"], ["이사부", "우산국(울릉도)을 신라 땅으로 만든 장군"], ["안용복", "울릉도와 독도가 우리 땅임을 일본에 알린 조선 사람"], ["서희", "거란과 담판해 강동 6주를 얻은 고려의 외교관"], ["최무선", "고려 말에 화약을 만든 사람"], ["김유신", "신라의 삼국 통일을 이끈 장군"], ["이황", "천 원 지폐에 그려진 조선의 학자"]], "문화재·장소·물건": [["경복궁", "조선이 세워진 뒤 가장 먼저 지은 궁궐"], ["불국사", "경주에 있는 신라의 절"], ["석굴암", "경주 토함산에 있는, 돌로 만든 불상이 있는 굴"], ["첨성대", "신라 시대에 하늘의 별을 관측하던 건물"], ["팔만대장경", "해인사에 보관된 나무판에 새긴 불경"], ["직지심체요절", "세계에서 가장 오래된 금속활자 인쇄본"], ["거북선", "이순신 장군이 앞장서 쓴 거북 모양의 배"], ["수원화성", "정조가 쌓았고 거중기가 쓰인 성"], ["남한산성", "병자호란 때 인조가 청나라 군대에 포위당했던 곳"], ["독도", "동해의 가장 동쪽에 있는 우리 땅 섬"], ["한산도", "이순신 장군이 큰 승리를 거둔 경남 통영 앞바다의 섬"], ["고인돌", "청동기 시대의 큰 돌무덤"], ["빗살무늬토기", "신석기 시대에 만든, 밑이 뾰족한 그릇"], ["고려청자", "비색이라 불린 푸른빛 도자기"], ["훈민정음", "한글의 처음 이름"], ["태극기", "우리나라의 국기"], ["무궁화", "우리나라를 상징하는 꽃으로 사랑받는 꽃"], ["광화문", "경복궁의 정문"], ["종묘", "조선 왕과 왕비의 신주를 모신 사당"], ["독립문", "서울 서대문에 있는, 독립의 뜻을 담은 문"], ["대동여지도", "김정호가 목판에 새겨 만든 우리나라 땅 그림"], ["동의보감", "허준이 쓴 의학책"], ["측우기", "비가 내린 양을 재는 도구"], ["자격루", "스스로 시간을 알려 주는 물시계"], ["거중기", "정약용이 만든, 무거운 돌을 들어 올리는 기계"]], "나라·사건·용어": [["고조선", "단군왕검이 세운 우리나라 최초의 나라"], ["고구려", "주몽이 세운 나라"], ["백제", "온조가 세운 나라"], ["신라", "박혁거세가 세운 나라, 삼국을 통일했어요"], ["발해", "대조영이 세운 나라"], ["고려", "왕건이 세운 나라"], ["조선", "이성계가 세운 나라"], ["대한제국", "조선 다음으로 고종이 선포한 나라 이름"], ["임진왜란", "1592년 일본이 쳐들어온 전쟁"], ["병자호란", "청나라가 쳐들어와 인조가 남한산성으로 피신한 전쟁"], ["살수대첩", "을지문덕이 수나라 군대를 물리친 싸움"], ["귀주대첩", "강감찬이 거란군을 크게 물리친 싸움"], ["삼일운동", "1919년 3월 1일에 온 국민이 만세를 외친 일"], ["광복", "1945년 일본에서 벗어나 나라를 되찾은 일"], ["한글", "세종대왕이 만든 우리 글자"], ["과거", "조선 시대에 관리를 뽑던 시험"], ["구석기시대", "돌을 깨뜨리거나 떼어 내어 도구를 만들던 가장 오래된 시대"], ["신석기시대", "농사를 시작하고 빗살무늬 토기를 만든 시대"], ["청동기시대", "고인돌과 비파형동검의 시대"], ["한국전쟁", "1950년 6월 25일에 일어난 남북 간의 큰 싸움"], ["임시정부", "1919년 상하이에 세워진 독립운동의 본부"], ["삼별초", "몽골에 끝까지 맞서 싸운 고려의 군대"], ["동학농민운동", "1894년에 일어난 큰 봉기로, 지도자는 전봉준"]], "전체 섞어서": [["세종대왕", "한글을 만든 임금"], ["이순신", "거북선을 앞세워 왜군을 물리친 장군"], ["광개토대왕", "고구려의 영토를 크게 넓힌 왕"], ["유관순", "3·1 운동 때 만세를 외친 소녀"], ["안중근", "하얼빈에서 이토 히로부미를 처단한 독립운동가"], ["김구", "『백범일지』를 쓴 독립운동가"], ["장영실", "물시계 자격루를 만든 과학자"], ["허준", "『동의보감』을 쓴 의학자"], ["정약용", "거중기를 설계해 수원 화성 쌓는 것을 도운 학자"], ["김정호", "「대동여지도」를 만든 지리학자"], ["신사임당", "율곡 이이의 어머니이자 오만 원 지폐 속 인물"], ["을지문덕", "살수에서 수나라 군대를 물리친 고구려 장군"], ["강감찬", "귀주에서 거란군을 크게 물리친 고려 장군"], ["왕건", "고려를 세운 임금"], ["이성계", "조선을 세운 임금"], ["주몽", "고구려를 세운 사람"], ["박혁거세", "신라를 세운 사람"], ["대조영", "발해를 세운 사람"], ["장보고", "청해진을 세운 신라의 해상왕"], ["윤봉길", "훙커우 공원에서 폭탄을 던진 독립운동가"], ["정조", "수원 화성을 짓게 한 조선의 임금"], ["선덕여왕", "신라의 첫 번째 여성 임금"], ["이사부", "우산국(울릉도)을 신라 땅으로 만든 장군"], ["안용복", "울릉도와 독도가 우리 땅임을 일본에 알린 조선 사람"], ["서희", "거란과 담판해 강동 6주를 얻은 고려의 외교관"], ["최무선", "고려 말에 화약을 만든 사람"], ["김유신", "신라의 삼국 통일을 이끈 장군"], ["이황", "천 원 지폐에 그려진 조선의 학자"], ["경복궁", "조선이 세워진 뒤 가장 먼저 지은 궁궐"], ["불국사", "경주에 있는 신라의 절"], ["석굴암", "경주 토함산에 있는, 돌로 만든 불상이 있는 굴"], ["첨성대", "신라 시대에 하늘의 별을 관측하던 건물"], ["팔만대장경", "해인사에 보관된 나무판에 새긴 불경"], ["직지심체요절", "세계에서 가장 오래된 금속활자 인쇄본"], ["거북선", "이순신 장군이 앞장서 쓴 거북 모양의 배"], ["수원화성", "정조가 쌓았고 거중기가 쓰인 성"], ["남한산성", "병자호란 때 인조가 청나라 군대에 포위당했던 곳"], ["독도", "동해의 가장 동쪽에 있는 우리 땅 섬"], ["한산도", "이순신 장군이 큰 승리를 거둔 경남 통영 앞바다의 섬"], ["고인돌", "청동기 시대의 큰 돌무덤"], ["빗살무늬토기", "신석기 시대에 만든, 밑이 뾰족한 그릇"], ["고려청자", "비색이라 불린 푸른빛 도자기"], ["훈민정음", "한글의 처음 이름"], ["태극기", "우리나라의 국기"], ["무궁화", "우리나라를 상징하는 꽃으로 사랑받는 꽃"], ["광화문", "경복궁의 정문"], ["종묘", "조선 왕과 왕비의 신주를 모신 사당"], ["독립문", "서울 서대문에 있는, 독립의 뜻을 담은 문"], ["대동여지도", "김정호가 목판에 새겨 만든 우리나라 땅 그림"], ["동의보감", "허준이 쓴 의학책"], ["측우기", "비가 내린 양을 재는 도구"], ["자격루", "스스로 시간을 알려 주는 물시계"], ["거중기", "정약용이 만든, 무거운 돌을 들어 올리는 기계"], ["고조선", "단군왕검이 세운 우리나라 최초의 나라"], ["고구려", "주몽이 세운 나라"], ["백제", "온조가 세운 나라"], ["신라", "박혁거세가 세운 나라, 삼국을 통일했어요"], ["발해", "대조영이 세운 나라"], ["고려", "왕건이 세운 나라"], ["조선", "이성계가 세운 나라"], ["대한제국", "조선 다음으로 고종이 선포한 나라 이름"], ["임진왜란", "1592년 일본이 쳐들어온 전쟁"], ["병자호란", "청나라가 쳐들어와 인조가 남한산성으로 피신한 전쟁"], ["살수대첩", "을지문덕이 수나라 군대를 물리친 싸움"], ["귀주대첩", "강감찬이 거란군을 크게 물리친 싸움"], ["삼일운동", "1919년 3월 1일에 온 국민이 만세를 외친 일"], ["광복", "1945년 일본에서 벗어나 나라를 되찾은 일"], ["한글", "세종대왕이 만든 우리 글자"], ["과거", "조선 시대에 관리를 뽑던 시험"], ["구석기시대", "돌을 깨뜨리거나 떼어 내어 도구를 만들던 가장 오래된 시대"], ["신석기시대", "농사를 시작하고 빗살무늬 토기를 만든 시대"], ["청동기시대", "고인돌과 비파형동검의 시대"], ["한국전쟁", "1950년 6월 25일에 일어난 남북 간의 큰 싸움"], ["임시정부", "1919년 상하이에 세워진 독립운동의 본부"], ["삼별초", "몽골에 끝까지 맞서 싸운 고려의 군대"], ["동학농민운동", "1894년에 일어난 큰 봉기로, 지도자는 전봉준"]]};
+const N=10;
+const CHO=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+function cho(ch){const c=ch.charCodeAt(0)-0xAC00;return (c>=0&&c<11172)?CHO[Math.floor(c/588)]:ch;}
+const bags={};let topic='',round=[],idx=0,score=0,hinted=false,revealed=false;
+const ts=$('#topic');
+Object.keys(BANK).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k+' ('+BANK[k].length+'문제)';ts.appendChild(o);});
+ts.onchange=()=>start();
+function start(){topic=ts.value;bags[topic]=bags[topic]||makeBag();round=takeRound(bags[topic],BANK[topic],N);idx=0;score=0;show();}
+function boxes(){
+  const [a]=round[idx];const bx=$('#bx');bx.innerHTML='';
+  [...a].forEach((ch,i)=>{
+    const d=document.createElement('div');d.className='bx';
+    if(revealed){d.className+=' rev';d.textContent=ch;}
+    else if(hinted&&i===0){d.className+=' part';d.textContent=ch;}
+    else d.textContent=cho(ch);
+    bx.appendChild(d);
+  });
+  $('#cnt').textContent=a.length+'글자';
+}
+function acts(){
+  const ac=$('#ac');ac.innerHTML='';
+  const mk=(t,cls,fn)=>{const b=document.createElement('button');b.className='btn '+cls;b.textContent=t;b.onclick=fn;ac.appendChild(b);};
+  if(!revealed){
+    mk('💡 첫 글자 힌트','teal',()=>{hinted=true;boxes();acts();});
+    mk('👀 정답 보기','purple',()=>{revealed=true;sndTick();boxes();acts();});
+  }else{
+    mk('👍 맞혔어요','green',()=>next(true));
+    mk('😅 아쉬워요','ghost',()=>next(false));
+  }
+  if(hinted&&!revealed)ac.firstChild.disabled=true;
+}
+function show(){
+  hinted=false;revealed=false;
+  $('#prog').textContent=(idx+1)+' / '+round.length;
+  $('#bar').style.width=(idx/round.length*100)+'%';
+  $('#sc').textContent='⭐ '+score;
+  $('#hq').textContent=round[idx][1]+'?';
+  boxes();acts();
+}
+function next(ok){
+  if(ok){score++;sndOk();}else sndNo();
+  if(idx+1>=round.length){finish();return;}
+  idx++;show();
+}
+function finish(){
+  $('#bar').style.width='100%';$('#sc').textContent='⭐ '+score;
+  const r=score/round.length;
+  const [ic,msg]=r===1?['🏆','만점! 초성 박사예요!']:r>=.7?['😄','아주 잘했어요!']:r>=.4?['🙂','좋아요! 한 번 더 도전!']:['💪','괜찮아요, 다시 해봐요!'];
+  if(r>=.7)confetti();
+  modal({icon:ic,title:score+' / '+round.length,msg:msg,buttons:[{t:'다시 (새 문제)',cls:'purple',fn:()=>start()},{t:'닫기',cls:'ghost'}]});
+}
+start();
+
+</script>
+</body>
+</html>

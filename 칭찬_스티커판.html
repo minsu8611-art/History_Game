@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>칭찬 스티커판</title>
+<style>
+:root{
+  --bg:#F7F1E1;--paper:#FBF8F0;--ink:#262220;--ink-soft:#6b6259;
+  --blue:#1F5C8B;--red:#C1362E;--yellow:#E3A72E;--green:#3E7A5D;--cta:#CB6A2F;--purple:#7B3F6B;--teal:#2E7DA3;
+  --line:rgba(38,34,32,0.16);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.topbar a.back{min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:800;font-size:14px;padding:0 12px;}
+.topbar .ttl{font-size:20px;font-weight:900;letter-spacing:-0.3px;}
+.topbar .sub{font-size:12px;color:var(--ink-soft);font-weight:600;margin-left:auto;text-align:right;}
+.topbar a.back{white-space:nowrap;flex:none;}
+.topbar .ttl{white-space:nowrap;}
+@media(max-width:560px){.topbar{padding:10px 12px;gap:10px;}.topbar .sub{display:none;}.topbar .ttl{font-size:18px;}.app{padding:12px 12px 32px;}}
+.app{max-width:1000px;margin:0 auto;padding:16px 16px 40px;}
+button{font-family:inherit;cursor:pointer;border:0;}
+.btn{min-height:52px;padding:0 22px;border-radius:14px;font-size:17px;font-weight:800;color:#fff;background:var(--cta);box-shadow:0 4px 0 rgba(0,0,0,0.18);}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.18);}
+.btn.blue{background:var(--blue);} .btn.red{background:var(--red);} .btn.green{background:var(--green);}
+.btn.purple{background:var(--purple);} .btn.teal{background:var(--teal);}
+.btn.yellow{background:var(--yellow);color:var(--ink);}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line);box-shadow:none;}
+.btn.small{min-height:44px;font-size:15px;padding:0 14px;}
+.btn[disabled]{opacity:.4;pointer-events:none;}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.center{text-align:center;}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;}
+select.sel{min-height:48px;font-size:16px;font-weight:700;border-radius:12px;border:1px solid var(--line);background:var(--paper);padding:0 12px;color:var(--ink);font-family:inherit;}
+.stepper{display:inline-flex;align-items:center;gap:6px;}
+.stepper button{width:48px;height:48px;border-radius:12px;background:var(--paper);border:1px solid var(--line);font-size:24px;font-weight:900;color:var(--ink);}
+.stepper .val{min-width:44px;text-align:center;font-size:22px;font-weight:900;}
+.hint{font-size:13px;color:var(--ink-soft);font-weight:600;}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(38,34,32,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.ov.on{display:flex;}
+.modal{background:var(--paper);border-radius:22px;padding:22px;max-width:520px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.35);}
+.modal h2{margin:0 0 12px;font-size:22px;font-weight:900;}
+.modal .big{font-size:56px;text-align:center;line-height:1.1;margin:6px 0;}
+.modal .msg{font-size:18px;font-weight:700;text-align:center;line-height:1.5;margin:6px 0 16px;}
+.modal .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:200;}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:800;background:var(--bg);border:1px solid var(--line);}
+
+
+.ctl{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:12px;}
+.ctl label{font-size:13px;font-weight:800;color:var(--ink-soft);margin-right:4px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;}
+.st{background:var(--paper);border:2px solid var(--line);border-radius:20px;padding:12px;text-align:center;}
+.st.full{border-color:var(--yellow);background:#FFF4D6;}
+.st .nm{min-height:48px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;border-radius:12px;background:var(--bg);}
+.st .stars{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:10px 0;min-height:68px;align-content:center;}
+.st .stars span{font-size:22px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(38,34,32,.08);filter:grayscale(1);opacity:.35;}
+.st .stars span.on{filter:none;opacity:1;background:#FFE9A8;}
+.st .bt{display:flex;gap:8px;}
+.st .bt button{min-height:56px;border-radius:14px;font-size:24px;font-weight:900;}
+.st .plus{flex:1;font-size:18px;white-space:nowrap;padding:0 4px;background:var(--green);color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.2);}
+.st .plus:active{transform:translateY(2px);}
+.st .minus{width:48px;background:var(--bg);color:var(--ink);border:1px solid var(--line);}
+.modal input[type=text]{width:100%;min-height:52px;font-size:20px;font-weight:700;border-radius:12px;border:2px solid var(--line);padding:0 12px;font-family:inherit;margin-bottom:12px;-webkit-user-select:text;user-select:text;}
+
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← 메뉴</a><div class="ttl">칭찬 스티커판</div><div class="sub">여행바구니 · 어린이 역사체험</div></div>
+<div class="app">
+
+<div class="ctl">
+  <div><label>학생 수</label><span class="stepper"><button id="sn">−</button><span class="val" id="sc">8</span><button id="sp">＋</button></span></div>
+  <div><label>목표 개수</label><select class="sel" id="goal"><option>3</option><option>5</option><option selected>8</option><option>10</option></select></div>
+  <div><label>스티커</label><select class="sel" id="emo"><option>⭐</option><option>🌟</option><option>🏅</option><option>🐯</option><option>🐢</option><option>🌸</option><option>🍀</option></select></div>
+  <button class="btn ghost small" id="reset" style="margin-left:auto">전부 지우기</button>
+</div>
+<div class="hint" style="margin-bottom:10px">이름을 누르면 이름을 바꿀 수 있어요. 목표를 채우면 보상 뽑기가 열려요 🎁</div>
+<div class="grid" id="grid"></div>
+
+</div>
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+<canvas id="confetti"></canvas>
+<script>
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+/* 셔플백: 문제 은행이 다 소진될 때까지 중복 없이 n개씩 뽑는다 */
+function makeBag(){return {pool:[]};}
+function takeRound(bag,all,n){
+  n=Math.min(n,all.length);
+  const out=[];
+  while(out.length<n){
+    if(bag.pool.length===0){
+      let fresh=shuffle(all.map((_,i)=>i));
+      // 직전 라운드와 연속 중복 방지
+      fresh=fresh.filter(i=>!out.includes(i)).concat(fresh.filter(i=>out.includes(i)));
+      bag.pool=fresh;
+    }
+    const i=bag.pool.shift();
+    if(!out.includes(i))out.push(i);
+  }
+  return out.map(i=>all[i]);
+}
+/* 소리 */
+let _ac=null;
+function beep(f,d,type){
+  try{
+    _ac=_ac||new (window.AudioContext||window.webkitAudioContext)();
+    const o=_ac.createOscillator(),g=_ac.createGain();
+    o.type=type||'sine';o.frequency.value=f;g.gain.value=0.12;
+    o.connect(g);g.connect(_ac.destination);o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001,_ac.currentTime+(d||0.15));
+    o.stop(_ac.currentTime+(d||0.15)+0.02);
+  }catch(e){}
+}
+function sndOk(){beep(660,.12);setTimeout(()=>beep(880,.18),110);}
+function sndNo(){beep(220,.25,'square');}
+function sndTick(){beep(520,.06);}
+function sndAlarm(){let k=0;const t=setInterval(()=>{beep(k%2?880:660,.22,'triangle');if(++k>=6)clearInterval(t);},260);}
+/* 폭죽 */
+function confetti(){
+  let cv=$('#confetti');if(!cv)return;
+  const ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return;
+  cv.width=innerWidth;cv.height=innerHeight;
+  const cols=['#1F5C8B','#C1362E','#E3A72E','#3E7A5D','#CB6A2F','#7B3F6B','#2E7DA3'];
+  const ps=Array.from({length:90},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.4,
+    vx:(Math.random()-.5)*4,vy:2+Math.random()*4,s:6+Math.random()*8,c:pick(cols),r:Math.random()*6}));
+  let f=0;
+  (function step(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.2;ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);ctx.restore();});
+    if(++f<110)requestAnimationFrame(step);else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+/* 모달: body는 HTML, buttons=[{t,cls,fn}] */
+function modal(o){
+  const ov=$('#ov'),m=$('#modal');
+  m.innerHTML=(o.title?'<h2>'+esc(o.title)+'</h2>':'')+(o.icon?'<div class="big">'+o.icon+'</div>':'')+
+    (o.msg?'<div class="msg">'+o.msg+'</div>':'')+(o.html||'')+'<div class="acts" id="macts"></div>';
+  const acts=$('#macts');
+  (o.buttons||[{t:'확인'}]).forEach(b=>{
+    const el=document.createElement('button');el.className='btn '+(b.cls||'');el.textContent=b.t;
+    el.onclick=()=>{ if(b.keep!==true)closeModal(); if(b.fn)b.fn(); };
+    acts.appendChild(el);
+  });
+  ov.classList.add('on');
+}
+function closeModal(){$('#ov').classList.remove('on');}
+
+
+const MAX=24;let n=8,goal=8,emo='⭐',names=Array.from({length:MAX},(_,i)=>(i+1)+'번'),cnt=Array(MAX).fill(0),claimed=Array(MAX).fill(false);
+function render(){
+  $('#sc').textContent=n;
+  const g=$('#grid');g.innerHTML='';
+  for(let i=0;i<n;i++){
+    const full=cnt[i]>=goal;
+    const d=document.createElement('div');d.className='st'+(full?' full':'');
+    let stars='';for(let k=0;k<goal;k++)stars+='<span class="'+(k<cnt[i]?'on':'')+'">'+emo+'</span>';
+    d.innerHTML='<div class="nm" data-r="'+i+'">'+esc(names[i])+'</div><div class="stars">'+stars+'</div><div class="bt"><button class="plus" data-p="'+i+'">'+(full?'🎁 보상!':'＋ 칭찬')+'</button><button class="minus" data-m="'+i+'">−</button></div>';
+    g.appendChild(d);
+  }
+  $$('[data-p]',g).forEach(b=>b.onclick=()=>add(+b.dataset.p));
+  $$('[data-m]',g).forEach(b=>b.onclick=()=>{const i=+b.dataset.m;if(cnt[i]>0){cnt[i]--;claimed[i]=cnt[i]>=goal&&claimed[i];render();}});
+  $$('.nm',g).forEach(b=>b.onclick=()=>rename(+b.dataset.r));
+}
+function add(i){
+  if(cnt[i]>=goal){reward(i);return;}
+  cnt[i]++;sndOk();render();
+  if(cnt[i]>=goal){confetti();reward(i);}
+}
+function reward(i){
+  modal({icon:'🎁',title:names[i]+' 목표 달성!',msg:'보상 뽑기에 도전해요',buttons:[
+    {t:'룰렛 돌리러 가기',cls:'cta',fn:()=>{location.href='역사수업_룰렛.html';}},
+    {t:'스티커 새로 시작',cls:'green',fn:()=>{cnt[i]=0;render();}},
+    {t:'닫기',cls:'ghost'}]});
+}
+function rename(i){
+  modal({title:'이름 바꾸기',html:'<input type="text" id="ni" maxlength="6" value="'+esc(names[i])+'">',buttons:[
+    {t:'취소',cls:'ghost'},{t:'저장',cls:'blue',fn:()=>{const v=$('#ni').value.trim();if(v)names[i]=v;render();}}]});
+}
+$('#sn').onclick=()=>{if(n>1){n--;render();}};$('#sp').onclick=()=>{if(n<MAX){n++;render();}};
+$('#goal').onchange=e=>{goal=+e.target.value;render();};
+$('#emo').onchange=e=>{emo=e.target.value;render();};
+$('#reset').onclick=()=>modal({icon:'🧹',msg:'모든 스티커를 지울까요?',buttons:[{t:'취소',cls:'ghost'},{t:'지우기',cls:'red',fn:()=>{cnt.fill(0);render();}}]});
+render();
+
+</script>
+</body>
+</html>

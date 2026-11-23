@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>역사수업 짝맞추기</title>
+<style>
+  :root{
+    --bg:#F7F1E1;
+    --paper:#FBF8F0;
+    --ink:#262220;
+    --ink-soft:#6b6259;
+    --blue:#1F5C8B;
+    --red:#C1362E;
+    --yellow:#E3A72E;
+    --green:#3E7A5D;
+    --cta:#CB6A2F;
+    --line: rgba(38,34,32,0.16);
+    --line-soft: rgba(38,34,32,0.22);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    -webkit-user-select:none;user-select:none;
+    touch-action:manipulation;
+    overflow:hidden;
+  }
+  .app{ height:100%; display:flex; flex-direction:column; }
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;border-bottom:1px solid var(--line);
+    background:var(--paper); flex-shrink:0; gap:8px;
+  }
+  .topbar h1{ font-size:19px;margin:0;font-weight:800;letter-spacing:-0.2px; }
+  .topbar .sub{ font-size:12px;color:var(--ink-soft);font-weight:500;margin-top:2px; }
+  .topbar-actions{ display:flex;gap:8px;align-items:center;flex-shrink:0; }
+  select#presetSelect{
+    font-size:14px;font-weight:700;padding:9px 10px;border-radius:10px;
+    border:1.5px solid var(--line);background:var(--paper);color:var(--ink);max-width:32vw;
+  }
+  button{ font-family:inherit;cursor:pointer;border:none; }
+  .icon-btn{
+    font-size:14px;font-weight:700;padding:9px 14px;border-radius:10px;
+    background:var(--paper);border:1.5px solid var(--ink);color:var(--ink);
+  }
+  .icon-btn:active{ transform:scale(0.96); }
+  .ghost-btn{
+    font-size:14px;font-weight:700;padding:9px 16px;border-radius:10px;
+    background:transparent;border:1.5px solid var(--line-soft);color:var(--ink-soft);
+  }
+  .cta-btn{
+    font-size:16px;font-weight:800;padding:12px 20px;border-radius:12px;
+    background:var(--cta);color:var(--paper);
+  }
+  .cta-btn:active{ transform:scale(0.97); }
+
+  .stage{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:12px;padding:14px;min-height:0;width:100%;
+  }
+  .cards-scroll{
+    width:100%;max-width:820px;flex:1;min-height:0;overflow-y:auto;
+    display:flex;align-items:center;
+  }
+  .cards-grid{
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
+    gap:12px;
+  }
+  .card{ perspective:1000px; height:110px; }
+  .card-inner{
+    position:relative;width:100%;height:100%;
+    transform-style:preserve-3d;
+    transition:transform 0.5s cubic-bezier(0.2,0.8,0.2,1);
+    border-radius:12px;
+    box-shadow:0 6px 14px rgba(38,34,32,0.16);
+  }
+  .card.flipped .card-inner{ transform:rotateY(180deg); }
+  .card-face{
+    position:absolute;inset:0;border-radius:12px;
+    backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    display:flex;align-items:center;justify-content:center;
+    padding:8px;text-align:center;
+  }
+  .card-front{
+    background:repeating-conic-gradient(var(--blue) 0deg 25deg, var(--red) 25deg 50deg, var(--yellow) 50deg 75deg, var(--green) 75deg 100deg);
+  }
+  .card-front::after{
+    content:"?";
+    font-size:26px;font-weight:900;color:var(--paper);
+    background:rgba(38,34,32,0.35);
+    width:38px;height:38px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .card-back{
+    transform:rotateY(180deg);
+    font-size:13px;font-weight:800;line-height:1.3;word-break:keep-all;
+  }
+  .card-back.side-a{ background:var(--blue); color:var(--paper); }
+  .card-back.side-b{ background:var(--yellow); color:var(--ink); }
+  .card.matched .card-inner{ box-shadow:0 0 0 3px var(--green), 0 6px 14px rgba(38,34,32,0.16); }
+  .card.matched{ opacity:0.65; }
+  .card:not(.flipped):not(.matched):active .card-inner{ transform:scale(0.95); }
+
+  .controls-row{ display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;flex-shrink:0; }
+  .count-info{
+    font-size:13px;font-weight:700;color:var(--ink-soft);
+    background:var(--paper);padding:6px 12px;border-radius:20px;border:1px solid var(--line);
+  }
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(38,34,32,0.55);
+    display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .overlay.hidden{ display:none; }
+  .panel{
+    background:var(--paper);border-radius:18px;padding:20px;
+    width:min(92vw,480px);max-height:88vh;overflow:auto;
+    box-shadow:0 20px 50px rgba(0,0,0,0.3);
+  }
+  .panel-head{ display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
+  .panel-head h2{ margin:0;font-size:18px;font-weight:800; }
+  .panel .field-label{ display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin:12px 0 6px; }
+  .panel-row{ display:flex;gap:8px;margin-top:14px; }
+  .panel-row .cta-btn, .panel-row .ghost-btn{ flex:1; }
+  #presetNameInput{
+    width:100%;font-size:15px;padding:11px 12px;border-radius:10px;
+    border:1.5px solid var(--line);font-family:inherit;
+  }
+
+  .stepper-row{ display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0 14px; }
+  .step-btn{
+    width:46px;height:46px;border-radius:12px;background:var(--paper);
+    border:1.5px solid var(--ink);font-size:22px;font-weight:800;color:var(--ink);line-height:1;
+  }
+  .step-btn:active{ transform:scale(0.93); }
+  .count-display{ font-size:22px;font-weight:900;min-width:70px;text-align:center; }
+
+  .pair-list{ display:flex;flex-direction:column;gap:8px;margin-bottom:6px; }
+  .pair-row{ display:flex;align-items:center;gap:8px; }
+  .pair-num{ width:26px;font-size:12px;font-weight:800;color:var(--ink-soft);flex-shrink:0;text-align:center; }
+  .pair-slot{
+    flex:1;padding:11px 10px;border-radius:10px;background:var(--bg);
+    border:1.5px solid var(--line-soft);font-size:14px;font-weight:700;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .pair-slot:active{ transform:scale(0.97);background:#F0E9D6; }
+  .pair-slot.a-slot{ color:var(--blue); }
+  .pair-slot.b-slot{ color:#8a6a12; }
+  .pair-arrow{ font-size:14px;color:var(--ink-soft);flex-shrink:0; }
+  .hint-text{ font-size:12.5px;color:var(--ink-soft);margin-top:8px;line-height:1.5; }
+
+  .slot-edit-overlay{
+    position:fixed;inset:0;background:rgba(38,34,32,0.6);
+    display:flex;align-items:center;justify-content:center;z-index:80;padding:20px;
+  }
+  .slot-edit-overlay.hidden{ display:none; }
+  .slot-edit-card{ background:var(--paper);border-radius:16px;padding:20px;width:min(88vw,360px); }
+  .slot-edit-card h3{ margin:0 0 12px;font-size:16px;font-weight:800; }
+  #slotEditInput{
+    width:100%;font-size:18px;padding:12px;border-radius:10px;
+    border:1.5px solid var(--line-soft);font-family:inherit;margin-bottom:14px;
+  }
+
+  .result-card{
+    background:var(--paper);border-radius:20px;padding:32px 26px;
+    width:min(90vw,420px);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.35);
+    animation:popIn 0.35s cubic-bezier(0.2,0.8,0.2,1);
+  }
+  @keyframes popIn{ from{transform:scale(0.7);opacity:0;} to{transform:scale(1);opacity:1;} }
+  .result-eyebrow{ margin:0 0 10px;font-size:13px;font-weight:800;letter-spacing:2px;color:var(--cta); }
+  .result-text{ margin:0 0 22px;font-size:22px;font-weight:900;line-height:1.4; }
+  .confetti-layer{ position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:49; }
+  .confetti-piece{
+    position:absolute;top:-20px;width:10px;height:16px;opacity:0.9;
+    animation-name:fall;animation-timing-function:linear;animation-fill-mode:forwards;
+  }
+  @keyframes fall{ to{ transform:translateY(110vh) rotate(540deg); opacity:0.2; } }
+  .menu-back{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;margin-bottom:6px;border-radius:10px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-size:13px;font-weight:800;}
+  @media(max-width:640px){
+    .topbar{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+    .topbar>div:first-child{flex:1 1 100%;}
+    .topbar h1{white-space:nowrap;}
+    .topbar-actions{flex:1 1 100%;flex-wrap:wrap;justify-content:flex-start;}
+    .topbar-actions select{max-width:none !important;flex:1 1 150px;min-height:44px;}
+    .topbar-actions button{min-height:44px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div>
+      <a class="menu-back" href="index.html">← 메뉴</a>
+      <h1>역사수업 짝맞추기</h1>
+      <div class="sub">여행바구니 · 어린이 역사체험</div>
+    </div>
+    <div class="topbar-actions">
+      <select id="presetSelect"></select>
+      <button id="reshuffleBtn" class="icon-btn">다시 섞기</button>
+      <button id="editBtn" class="icon-btn">항목 편집</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="cards-scroll">
+      <div class="cards-grid" id="cardsGrid"></div>
+    </div>
+    <div class="controls-row">
+      <span class="count-info" id="statusInfo"></span>
+    </div>
+  </main>
+</div>
+
+<div id="editOverlay" class="overlay hidden">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>항목 편집</h2>
+      <button id="closeEdit" class="icon-btn">닫기</button>
+    </div>
+    <label class="field-label">쌍(짝)의 개수</label>
+    <div class="stepper-row">
+      <button id="countDecBtn" class="step-btn">−</button>
+      <span id="countDisplay" class="count-display">4</span>
+      <button id="countIncBtn" class="step-btn">+</button>
+    </div>
+    <label class="field-label">탭해서 내용을 바꾸세요</label>
+    <div class="pair-list" id="pairList"></div>
+    <div class="hint-text">왼쪽(파란색)과 오른쪽(노란색)이 서로 짝이에요. 예: 인물 → 업적, 유물 → 시대</div>
+
+    <label class="field-label">다른 이름으로 저장 (선택)</label>
+    <input type="text" id="presetNameInput" placeholder="예: 사건-결과">
+    <div class="panel-row">
+      <button id="saveAsBtn" class="ghost-btn">이 이름으로 저장</button>
+      <button id="deletePresetBtn" class="ghost-btn">이 목록 삭제</button>
+    </div>
+  </div>
+</div>
+
+<div id="slotEditOverlay" class="slot-edit-overlay hidden">
+  <div class="slot-edit-card">
+    <h3 id="slotEditTitle">항목 수정</h3>
+    <input type="text" id="slotEditInput">
+    <div class="panel-row">
+      <button id="slotEditCancel" class="ghost-btn">취소</button>
+      <button id="slotEditConfirm" class="cta-btn">확인</button>
+    </div>
+  </div>
+</div>
+
+<div id="resultOverlay" class="overlay hidden">
+  <div class="result-card">
+    <p class="result-eyebrow">완료</p>
+    <p class="result-text" id="resultText">-</p>
+    <button id="closeResult" class="cta-btn">다시 하기</button>
+  </div>
+</div>
+<div id="confettiLayer" class="confetti-layer"></div>
+
+<script>
+(function(){
+  var MIN_PAIRS = 3, MAX_PAIRS = 20;
+
+  var presets = {
+    "선사시대·고조선": {
+      activeCount: 4,
+      all: [
+        {a:"단군왕검", b:"고조선 건국 시조(신화)"},
+        {a:"위만", b:"위만조선 수립, 고조선 왕위 차지"},
+        {a:"우거왕", b:"고조선 마지막 왕, 한과 전쟁"},
+        {a:"빗살무늬 토기", b:"신석기 시대 대표 유물"},
+        {a:"주먹도끼", b:"구석기 시대 대표 유물"},
+        {a:"반달돌칼", b:"청동기 시대, 벼 이삭을 자르던 도구"},
+        {a:"고인돌", b:"청동기 시대 지배층의 무덤"},
+        {a:"비파형 동검", b:"청동기 시대 대표 청동 무기"},
+        {a:"8조법(범금 8조)", b:"고조선의 법률(현재 3개 조항만 전해짐)"},
+        {a:"위만조선", b:"철기 문화를 본격적으로 수용"},
+        {a:"왕검성 함락", b:"한 무제의 공격으로 고조선 멸망(기원전 108)"},
+        {a:"한사군 설치", b:"고조선 멸망 후 한이 설치한 4개 군"}
+      ]
+    },
+    "삼국시대": {
+      activeCount: 4,
+      all: [
+        {a:"주몽(동명성왕)", b:"고구려 건국"},
+        {a:"온조왕", b:"백제 건국"},
+        {a:"박혁거세", b:"신라 건국"},
+        {a:"근초고왕", b:"백제 전성기, 마한 지역 정복"},
+        {a:"광개토대왕", b:"고구려 영토 크게 확장"},
+        {a:"장수왕", b:"평양 천도, 백제 한성 함락"},
+        {a:"성왕", b:"백제 사비 천도, 관산성 전투에서 전사"},
+        {a:"진흥왕", b:"신라 영토 확장, 화랑도 정비"},
+        {a:"을지문덕", b:"살수대첩 승리(612)"},
+        {a:"연개소문", b:"대막리지로 권력 장악, 당의 침입 저지"},
+        {a:"계백", b:"황산벌 전투(백제 결사대)"},
+        {a:"의자왕", b:"백제 마지막 왕(660년 멸망)"},
+        {a:"김춘추(무열왕)", b:"나당 동맹 체결"},
+        {a:"김유신", b:"신라의 삼국통일에 공헌"},
+        {a:"문무왕", b:"삼국통일 완성(676)"},
+        {a:"대조영", b:"발해 건국"},
+        {a:"미천왕", b:"낙랑군 축출(313)"},
+        {a:"소수림왕", b:"불교 수용, 율령 반포(고구려)"},
+        {a:"지증왕", b:"'신라' 국호와 왕 호칭 확정"},
+        {a:"법흥왕", b:"불교 공인, 율령 반포(신라)"}
+      ]
+    },
+    "고려": {
+      activeCount: 4,
+      all: [
+        {a:"왕건", b:"고려 건국(918), 후삼국 통일"},
+        {a:"광종", b:"노비안검법·과거제 실시"},
+        {a:"서희", b:"거란과 담판, 강동 6주 획득"},
+        {a:"강감찬", b:"귀주대첩 승리(1019)"},
+        {a:"윤관", b:"별무반 조직, 여진 정벌"},
+        {a:"최충헌", b:"무신정권 확립"},
+        {a:"지눌", b:"불교 개혁(수선사 결사)"},
+        {a:"배중손", b:"삼별초 이끌고 대몽 항쟁"},
+        {a:"문익점", b:"목화씨 전래"},
+        {a:"공민왕", b:"반원 자주 개혁 정책 추진"},
+        {a:"정몽주", b:"고려 말 온건 개혁파, 충신"},
+        {a:"최무선", b:"화약 무기 개발, 진포대첩"},
+        {a:"현종", b:"거란의 침입 격퇴, 초조대장경 조판 시작"},
+        {a:"최우", b:"강화도 천도, 몽골 항쟁 주도"},
+        {a:"안향", b:"고려에 성리학을 처음 들여옴"},
+        {a:"이제현", b:"만권당에서 원의 학자들과 교류, 성리학 발전에 기여"},
+        {a:"이규보", b:"동명왕편 저술"},
+        {a:"일연", b:"삼국유사 저술"},
+        {a:"김부식", b:"삼국사기 저술"},
+        {a:"최영", b:"왜구·홍건적 토벌, 요동 정벌 추진"}
+      ]
+    },
+    "조선": {
+      activeCount: 4,
+      all: [
+        {a:"이성계(태조)", b:"위화도 회군, 조선 건국(1392)"},
+        {a:"정도전", b:"조선 건국 설계, 한양 도성 계획"},
+        {a:"세종대왕", b:"훈민정음 창제"},
+        {a:"장영실", b:"측우기 등 과학기구 발명"},
+        {a:"신사임당", b:"시·서·화에 뛰어난 예술 작품을 남김"},
+        {a:"이황", b:"성리학 이론 정립(도산서원)"},
+        {a:"이이", b:"십만양병설 주장"},
+        {a:"이순신", b:"한산도 대첩 등 임진왜란 승리"},
+        {a:"유성룡", b:"임진왜란 때 재상, 징비록 저술"},
+        {a:"허준", b:"동의보감 저술"},
+        {a:"광해군", b:"중립외교 정책 추진"},
+        {a:"정조", b:"수원 화성 건설, 규장각 설치"},
+        {a:"정약용", b:"목민심서 저술, 실학 집대성"},
+        {a:"흥선대원군", b:"경복궁 중건, 쇄국 정책"},
+        {a:"영조", b:"탕평책 실시, 균역법 시행"},
+        {a:"김정호", b:"대동여지도 제작"},
+        {a:"박지원", b:"열하일기 저술, 상공업 진흥 주장"},
+        {a:"정약전", b:"자산어보 저술"},
+        {a:"홍대용", b:"지전설(땅이 돈다는 이론) 주장"},
+        {a:"김정희", b:"추사체 완성, 세한도 등 서화"}
+      ]
+    },
+    "일제강점기": {
+      activeCount: 4,
+      all: [
+        {a:"안창호", b:"신민회·흥사단 조직, 민족교육 운동"},
+        {a:"신채호", b:"민족주의 사학자, 조선상고사 저술"},
+        {a:"이회영", b:"만주 신흥무관학교 설립"},
+        {a:"홍범도", b:"봉오동 전투 승리"},
+        {a:"김좌진", b:"청산리 대첩 승리"},
+        {a:"유관순", b:"3·1 운동(아우내 만세운동) 참여"},
+        {a:"한용운", b:"3·1운동 민족대표, 님의 침묵 저술"},
+        {a:"안중근", b:"하얼빈 의거(1909)"},
+        {a:"나석주", b:"동양척식주식회사에 폭탄 투척"},
+        {a:"김구", b:"대한민국 임시정부 이끎"},
+        {a:"이봉창", b:"도쿄에서 일왕 행렬에 폭탄 투척(1932)"},
+        {a:"윤봉길", b:"훙커우 공원 의거(1932)"},
+        {a:"손기정", b:"베를린 올림픽 마라톤 금메달(1936)"},
+        {a:"이상재", b:"물산장려운동·신간회 참여"},
+        {a:"조만식", b:"물산장려운동 주도"},
+        {a:"여운형", b:"조선건국준비위원회 조직"},
+        {a:"이육사", b:"저항시(광야 등) 저술, 독립운동"},
+        {a:"윤동주", b:"저항시(서시 등) 저술, 옥사"},
+        {a:"박은식", b:"한국통사 저술, 임시정부 대통령 역임"},
+        {a:"방정환", b:"어린이날 제정, 소년운동"}
+      ]
+    },
+    "유물-시대": {
+      activeCount: 4,
+      all: [
+        {a:"빗살무늬 토기", b:"신석기 시대"},
+        {a:"주먹도끼", b:"구석기 시대"},
+        {a:"반달돌칼", b:"청동기 시대"},
+        {a:"고인돌", b:"청동기 시대"},
+        {a:"비파형 동검", b:"청동기 시대"},
+        {a:"금관(신라 금관)", b:"신라"},
+        {a:"첨성대", b:"신라"},
+        {a:"석굴암", b:"통일신라"},
+        {a:"무령왕릉 금제관식", b:"백제"},
+        {a:"팔만대장경", b:"고려"},
+        {a:"금속활자(직지심체요절)", b:"고려"},
+        {a:"고려청자", b:"고려"},
+        {a:"훈민정음 해례본", b:"조선"},
+        {a:"거북선", b:"조선"},
+        {a:"조선백자", b:"조선"},
+        {a:"상평통보", b:"조선"},
+        {a:"측우기", b:"조선"},
+        {a:"수원 화성", b:"조선"},
+        {a:"칠지도", b:"백제"},
+        {a:"천마도", b:"신라"}
+      ]
+    }
+  };
+  var currentName = "삼국시대";
+
+  function activePairs(name){
+    var p = presets[name];
+    return p.all.slice(0, p.activeCount);
+  }
+
+  var cardsGrid = document.getElementById('cardsGrid');
+  var presetSelect = document.getElementById('presetSelect');
+  var statusInfo = document.getElementById('statusInfo');
+
+  var editOverlay = document.getElementById('editOverlay');
+  var countDisplay = document.getElementById('countDisplay');
+  var pairList = document.getElementById('pairList');
+  var presetNameInput = document.getElementById('presetNameInput');
+
+  var slotEditOverlay = document.getElementById('slotEditOverlay');
+  var slotEditTitle = document.getElementById('slotEditTitle');
+  var slotEditInput = document.getElementById('slotEditInput');
+  var editingSlot = null;
+
+  var resultOverlay = document.getElementById('resultOverlay');
+  var resultText = document.getElementById('resultText');
+  var confettiLayer = document.getElementById('confettiLayer');
+
+  var deck = [];        // {pairId, side, text}
+  var flippedIdx = [];  // currently face-up, unresolved (max 2)
+  var matchedCount = 0;
+  var attempts = 0;
+  var busy = false;
+
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function refreshPresetSelect(){
+    presetSelect.innerHTML = '';
+    Object.keys(presets).forEach(function(name){
+      var opt = document.createElement('option');
+      opt.value = name; opt.textContent = name;
+      if(name === currentName) opt.selected = true;
+      presetSelect.appendChild(opt);
+    });
+  }
+
+  function shuffle(arr){
+    for(var i=arr.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t = arr[i]; arr[i]=arr[j]; arr[j]=t;
+    }
+    return arr;
+  }
+
+  function buildDeck(){
+    var pairs = activePairs(currentName);
+    var cards = [];
+    pairs.forEach(function(p, idx){
+      cards.push({pairId: idx, side:'a', text: p.a});
+      cards.push({pairId: idx, side:'b', text: p.b});
+    });
+    deck = shuffle(cards);
+    flippedIdx = [];
+    matchedCount = 0;
+    attempts = 0;
+    busy = false;
+  }
+
+  function renderCards(){
+    cardsGrid.innerHTML = '';
+    deck.forEach(function(card, idx){
+      var el = document.createElement('div');
+      var cls = 'card';
+      if(card.matched) cls += ' matched';
+      if(card.matched || flippedIdx.indexOf(idx) !== -1) cls += ' flipped';
+      el.className = cls;
+      el.innerHTML =
+        '<div class="card-inner">' +
+          '<div class="card-face card-front"></div>' +
+          '<div class="card-face card-back side-'+card.side+'">'+escapeHtml(card.text)+'</div>' +
+        '</div>';
+      el.addEventListener('click', function(){ onTapCard(idx); });
+      cardsGrid.appendChild(el);
+    });
+    updateStatus();
+  }
+
+  function updateStatus(){
+    var total = activePairs(currentName).length;
+    statusInfo.textContent = '시도 ' + attempts + '회 · 맞춘 쌍 ' + matchedCount + ' / ' + total;
+  }
+
+  function onTapCard(idx){
+    if(busy) return;
+    var card = deck[idx];
+    if(card.matched) return;
+    if(flippedIdx.indexOf(idx) !== -1) return;
+    if(flippedIdx.length >= 2) return;
+
+    flippedIdx.push(idx);
+    renderCards();
+
+    if(flippedIdx.length === 2){
+      busy = true;
+      attempts++;
+      var i1 = flippedIdx[0], i2 = flippedIdx[1];
+      var c1 = deck[i1], c2 = deck[i2];
+      var isMatch = c1.pairId === c2.pairId && c1.side !== c2.side;
+      if(isMatch){
+        setTimeout(function(){
+          c1.matched = true; c2.matched = true;
+          matchedCount++;
+          flippedIdx = [];
+          busy = false;
+          renderCards();
+          if(matchedCount === activePairs(currentName).length){
+            setTimeout(showComplete, 300);
+          }
+        }, 500);
+      } else {
+        setTimeout(function(){
+          flippedIdx = [];
+          busy = false;
+          renderCards();
+        }, 900);
+      }
+    }
+  }
+
+  function showComplete(){
+    resultText.textContent = attempts + '번 만에 모두 맞췄어요!';
+    resultOverlay.classList.remove('hidden');
+    launchConfetti();
+  }
+  document.getElementById('closeResult').addEventListener('click', function(){
+    resultOverlay.classList.add('hidden');
+    buildDeck();
+    renderCards();
+  });
+
+  document.getElementById('reshuffleBtn').addEventListener('click', function(){
+    buildDeck();
+    renderCards();
+  });
+
+  presetSelect.addEventListener('change', function(){
+    currentName = presetSelect.value;
+    buildDeck();
+    renderCards();
+  });
+
+  // ---------- 편집 패널 ----------
+  function nextLabel(list, key){
+    var n = list.length;
+    if(n > 0){
+      var m = list[n-1][key].match(/^(.*?)(\d+)$/);
+      if(m) return m[1] + (parseInt(m[2],10)+1);
+    }
+    return null;
+  }
+
+  function renderEditPanel(){
+    var pairs = activePairs(currentName);
+    countDisplay.textContent = pairs.length;
+    pairList.innerHTML = '';
+    pairs.forEach(function(p, idx){
+      var row = document.createElement('div');
+      row.className = 'pair-row';
+      row.innerHTML =
+        '<span class="pair-num">'+(idx+1)+'</span>' +
+        '<div class="pair-slot a-slot" data-side="a" data-idx="'+idx+'"></div>' +
+        '<span class="pair-arrow">↔</span>' +
+        '<div class="pair-slot b-slot" data-side="b" data-idx="'+idx+'"></div>';
+      row.querySelector('.a-slot').textContent = p.a;
+      row.querySelector('.b-slot').textContent = p.b;
+      pairList.appendChild(row);
+    });
+    Array.prototype.forEach.call(pairList.querySelectorAll('.pair-slot'), function(el){
+      el.addEventListener('click', function(){
+        openSlotEdit(el.getAttribute('data-side'), +el.getAttribute('data-idx'));
+      });
+    });
+    presetNameInput.value = '';
+  }
+
+  function openSlotEdit(side, idx){
+    editingSlot = { side: side, idx: idx };
+    var label = side === 'a' ? '왼쪽' : '오른쪽';
+    slotEditTitle.textContent = (idx+1) + '번 ' + label + ' 항목 수정';
+    slotEditInput.value = presets[currentName].all[idx][side];
+    slotEditOverlay.classList.remove('hidden');
+    setTimeout(function(){ slotEditInput.focus(); slotEditInput.select(); }, 50);
+  }
+
+  function commitSlotEdit(){
+    var val = slotEditInput.value.trim();
+    if(val){
+      presets[currentName].all[editingSlot.idx][editingSlot.side] = val;
+    }
+    slotEditOverlay.classList.add('hidden');
+    renderEditPanel();
+    buildDeck();
+    renderCards();
+  }
+  document.getElementById('slotEditConfirm').addEventListener('click', commitSlotEdit);
+  document.getElementById('slotEditCancel').addEventListener('click', function(){
+    slotEditOverlay.classList.add('hidden');
+  });
+  slotEditInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') commitSlotEdit();
+  });
+
+  document.getElementById('countIncBtn').addEventListener('click', function(){
+    var p = presets[currentName];
+    if(p.activeCount >= MAX_PAIRS) return;
+    if(p.activeCount >= p.all.length){
+      var pairs = activePairs(currentName);
+      var nextA = nextLabel(pairs, 'a') || ('항목 ' + (pairs.length+1));
+      var nextB = nextLabel(pairs, 'b') || ('설명 ' + (pairs.length+1));
+      p.all.push({a: nextA, b: nextB});
+    }
+    p.activeCount++;
+    renderEditPanel();
+    buildDeck();
+    renderCards();
+  });
+  document.getElementById('countDecBtn').addEventListener('click', function(){
+    var p = presets[currentName];
+    if(p.activeCount <= MIN_PAIRS) return;
+    p.activeCount--;
+    renderEditPanel();
+    buildDeck();
+    renderCards();
+  });
+
+  document.getElementById('editBtn').addEventListener('click', function(){
+    renderEditPanel();
+    editOverlay.classList.remove('hidden');
+  });
+  document.getElementById('closeEdit').addEventListener('click', function(){
+    editOverlay.classList.add('hidden');
+  });
+  document.getElementById('saveAsBtn').addEventListener('click', function(){
+    var name = presetNameInput.value.trim();
+    if(!name){
+      alert('저장할 이름을 입력해 주세요.');
+      return;
+    }
+    var snapshot = activePairs(currentName).map(function(p){ return {a:p.a,b:p.b}; });
+    presets[name] = { all: snapshot, activeCount: snapshot.length };
+    currentName = name;
+    refreshPresetSelect();
+    renderEditPanel();
+  });
+  document.getElementById('deletePresetBtn').addEventListener('click', function(){
+    var names = Object.keys(presets);
+    if(names.length <= 1){
+      alert('마지막 남은 목록은 삭제할 수 없습니다.');
+      return;
+    }
+    delete presets[currentName];
+    currentName = Object.keys(presets)[0];
+    refreshPresetSelect();
+    buildDeck();
+    renderCards();
+    editOverlay.classList.add('hidden');
+  });
+
+  function launchConfetti(){
+    var colors = ["#1F5C8B","#C1362E","#E3A72E","#3E7A5D","#CB6A2F"];
+    for(var i=0;i<26;i++){
+      var el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = (Math.random()*100) + 'vw';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      var dur = 1.6 + Math.random()*1.2;
+      el.style.animationDuration = dur + 's';
+      el.style.animationDelay = (Math.random()*0.3) + 's';
+      confettiLayer.appendChild(el);
+      (function(node, d){ setTimeout(function(){ node.remove(); }, (d+0.5)*1000); })(el, dur);
+    }
+  }
+
+  refreshPresetSelect();
+  buildDeck();
+  renderCards();
+})();
+</script>
+</body>
+</html>

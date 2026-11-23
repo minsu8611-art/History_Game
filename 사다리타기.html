@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>역사수업 사다리타기</title>
+<style>
+  :root{
+    --bg:#F7F1E1;
+    --paper:#FBF8F0;
+    --ink:#262220;
+    --ink-soft:#6b6259;
+    --blue:#1F5C8B;
+    --red:#C1362E;
+    --yellow:#E3A72E;
+    --green:#3E7A5D;
+    --cta:#CB6A2F;
+    --line: rgba(38,34,32,0.16);
+    --line-soft: rgba(38,34,32,0.22);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    -webkit-user-select:none;user-select:none;
+    touch-action:manipulation;
+    overflow:hidden;
+  }
+  .app{ height:100%; display:flex; flex-direction:column; }
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;border-bottom:1px solid var(--line);
+    background:var(--paper); flex-shrink:0;
+  }
+  .topbar h1{ font-size:19px;margin:0;font-weight:800;letter-spacing:-0.2px; }
+  .topbar .sub{ font-size:12px;color:var(--ink-soft);font-weight:500;margin-top:2px; }
+  .topbar-actions{ display:flex;gap:8px;align-items:center; }
+  button{ font-family:inherit;cursor:pointer;border:none; }
+  .icon-btn{
+    font-size:14px;font-weight:700;padding:9px 14px;border-radius:10px;
+    background:var(--paper);border:1.5px solid var(--ink);color:var(--ink);
+  }
+  .icon-btn:active{ transform:scale(0.96); }
+  .ghost-btn{
+    font-size:14px;font-weight:700;padding:9px 16px;border-radius:10px;
+    background:transparent;border:1.5px solid var(--line-soft);color:var(--ink-soft);
+  }
+  .cta-btn{
+    font-size:16px;font-weight:800;padding:12px 20px;border-radius:12px;
+    background:var(--cta);color:var(--paper);
+  }
+  .cta-btn:active{ transform:scale(0.97); }
+
+  .stage{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;padding:14px;min-height:0;
+  }
+  .scroll-hint{ font-size:12px;color:var(--ink-soft);font-weight:600; }
+
+  .ladder-scroll{
+    width:100%;
+    max-width:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    flex:1;
+    min-height:0;
+    display:flex;
+    align-items:center;
+    -webkit-overflow-scrolling:touch;
+  }
+  .ladder-wrap{
+    position:relative;
+    margin:0 auto;
+    flex-shrink:0;
+  }
+  .pill-row{ position:relative; height:56px; }
+  .pill{
+    position:absolute;
+    top:0;
+    height:52px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:12px;
+    font-weight:800;
+    font-size:14px;
+    padding:0 6px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    box-shadow:0 3px 8px rgba(38,34,32,0.12);
+  }
+  .pill.top{
+    background:var(--blue); color:var(--paper);
+  }
+  .pill.top:active{ transform:scale(0.95); }
+  .pill.top.used{ opacity:0.55; }
+  .pill.bottom{
+    background:var(--paper); color:var(--ink);
+    border:1.5px solid var(--line-soft);
+  }
+  svg{ display:block; }
+  .rung{ stroke:var(--ink); stroke-opacity:0.28; stroke-width:4; stroke-linecap:round; }
+  .rail{ stroke:var(--ink); stroke-opacity:0.28; stroke-width:4; stroke-linecap:round; }
+  .path-line{ fill:none; stroke-width:6; stroke-linecap:round; stroke-linejoin:round; }
+
+  .controls-row{ display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center; }
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(38,34,32,0.55);
+    display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .overlay.hidden{ display:none; }
+  .panel{
+    background:var(--paper);border-radius:18px;padding:20px;
+    width:min(92vw,480px);max-height:88vh;overflow:auto;
+    box-shadow:0 20px 50px rgba(0,0,0,0.3);
+  }
+  .panel-head{ display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
+  .panel-head h2{ margin:0;font-size:18px;font-weight:800; }
+  .panel .field-label{ display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin:12px 0 6px; }
+  .panel-row{ display:flex;gap:8px;margin-top:14px; }
+  .panel-row .cta-btn, .panel-row .ghost-btn{ flex:1; }
+  .hint-text{ font-size:12.5px;color:var(--ink-soft);margin-top:8px;line-height:1.5; }
+
+  .stepper-row{ display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0 14px; }
+  .step-btn{
+    width:46px;height:46px;border-radius:12px;background:var(--paper);
+    border:1.5px solid var(--ink);font-size:22px;font-weight:800;color:var(--ink);line-height:1;
+  }
+  .step-btn:active{ transform:scale(0.93); }
+  .count-display{ font-size:22px;font-weight:900;min-width:70px;text-align:center; }
+
+  .pair-list{ display:flex;flex-direction:column;gap:8px;margin-bottom:6px; }
+  .pair-row{ display:flex;align-items:center;gap:8px; }
+  .pair-num{ width:26px;font-size:12px;font-weight:800;color:var(--ink-soft);flex-shrink:0;text-align:center; }
+  .pair-slot{
+    flex:1;padding:11px 10px;border-radius:10px;background:var(--bg);
+    border:1.5px solid var(--line-soft);font-size:14px;font-weight:700;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .pair-slot:active{ transform:scale(0.97);background:#F0E9D6; }
+  .pair-slot.top-slot{ color:var(--blue); }
+  .pair-slot.bottom-slot{ color:var(--ink); }
+  .pair-arrow{ font-size:14px;color:var(--ink-soft);flex-shrink:0; }
+
+  .slot-edit-overlay{
+    position:fixed;inset:0;background:rgba(38,34,32,0.6);
+    display:flex;align-items:center;justify-content:center;z-index:80;padding:20px;
+  }
+  .slot-edit-overlay.hidden{ display:none; }
+  .slot-edit-card{ background:var(--paper);border-radius:16px;padding:20px;width:min(88vw,360px); }
+  .slot-edit-card h3{ margin:0 0 12px;font-size:16px;font-weight:800; }
+  #slotEditInput{
+    width:100%;font-size:18px;padding:12px;border-radius:10px;
+    border:1.5px solid var(--line-soft);font-family:inherit;margin-bottom:14px;
+  }
+
+  .result-card{
+    background:var(--paper);border-radius:20px;padding:30px 26px;
+    width:min(90vw,440px);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.35);
+    animation:popIn 0.35s cubic-bezier(0.2,0.8,0.2,1);
+    max-height:80vh;overflow:auto;
+  }
+  @keyframes popIn{ from{transform:scale(0.7);opacity:0;} to{transform:scale(1);opacity:1;} }
+  .result-eyebrow{ margin:0 0 10px;font-size:13px;font-weight:800;letter-spacing:2px;color:var(--cta); }
+  .result-text{ margin:0 0 22px;font-size:clamp(22px,5.5vw,34px);font-weight:900;line-height:1.35;word-break:keep-all; }
+  .result-list{ text-align:left;font-size:16px;font-weight:700;line-height:2;margin:0 0 20px; }
+  .result-list li{ list-style:none; }
+  .confetti-layer{ position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:49; }
+  .confetti-piece{
+    position:absolute;top:-20px;width:10px;height:16px;opacity:0.9;
+    animation-name:fall;animation-timing-function:linear;animation-fill-mode:forwards;
+  }
+  @keyframes fall{ to{ transform:translateY(110vh) rotate(540deg); opacity:0.2; } }
+  .menu-back{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;margin-bottom:6px;border-radius:10px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-size:13px;font-weight:800;}
+  @media(max-width:640px){
+    .topbar{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+    .topbar>div:first-child{flex:1 1 100%;}
+    .topbar h1{white-space:nowrap;}
+    .topbar-actions{flex:1 1 100%;flex-wrap:wrap;justify-content:flex-start;}
+    .topbar-actions select{max-width:none !important;flex:1 1 150px;min-height:44px;}
+    .topbar-actions button{min-height:44px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div>
+      <a class="menu-back" href="index.html">← 메뉴</a>
+      <h1>역사수업 사다리타기</h1>
+      <div class="sub">여행바구니 · 어린이 역사체험</div>
+    </div>
+    <div class="topbar-actions">
+      <button id="reshuffleBtn" class="icon-btn">다시 섞기</button>
+      <button id="editBtn" class="icon-btn">항목 편집</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="ladder-scroll" id="ladderScroll">
+      <div class="ladder-wrap" id="ladderWrap"></div>
+    </div>
+    <div class="scroll-hint">참가자 이름을 탭하면 결과가 나와요 · 좌우로 밀 수 있어요</div>
+    <div class="controls-row">
+      <button id="revealAllBtn" class="ghost-btn">전체 결과 보기</button>
+    </div>
+  </main>
+</div>
+
+<div id="editOverlay" class="overlay hidden">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>항목 편집</h2>
+      <button id="closeEdit" class="icon-btn">닫기</button>
+    </div>
+    <label class="field-label">인원 수</label>
+    <div class="stepper-row">
+      <button id="countDecBtn" class="step-btn">−</button>
+      <span id="countDisplay" class="count-display">4</span>
+      <button id="countIncBtn" class="step-btn">+</button>
+    </div>
+    <label class="field-label">참가자·결과를 탭해서 내용을 바꾸세요</label>
+    <div class="pair-list" id="pairList"></div>
+    <div class="hint-text">위쪽(파란색)은 참가자, 아래쪽은 결과예요. 개수는 항상 같게 유지돼요.</div>
+  </div>
+</div>
+
+<div id="slotEditOverlay" class="slot-edit-overlay hidden">
+  <div class="slot-edit-card">
+    <h3 id="slotEditTitle">항목 수정</h3>
+    <input type="text" id="slotEditInput">
+    <div class="panel-row">
+      <button id="slotEditCancel" class="ghost-btn">취소</button>
+      <button id="slotEditConfirm" class="cta-btn">확인</button>
+    </div>
+  </div>
+</div>
+
+<div id="resultOverlay" class="overlay hidden">
+  <div class="result-card" id="resultCard"></div>
+</div>
+<div id="confettiLayer" class="confetti-layer"></div>
+
+<script>
+(function(){
+  var COLORS = ["#1F5C8B","#C1362E","#E3A72E","#3E7A5D","#7B3F6B","#2E7DA3"];
+
+  var topItems = ["학생 1","학생 2","학생 3","학생 4"];
+  var bottomItems = ["1번째","2번째","3번째","4번째"];
+
+  var COL_SPACING = 92;
+  var MARGIN = 46;
+  var SVG_HEIGHT = 320;
+  var ROWS = 10;
+
+  var ladderScroll = document.getElementById('ladderScroll');
+  var ladderWrap = document.getElementById('ladderWrap');
+  var editOverlay = document.getElementById('editOverlay');
+  var countDisplay = document.getElementById('countDisplay');
+  var pairList = document.getElementById('pairList');
+  var slotEditOverlay = document.getElementById('slotEditOverlay');
+  var slotEditTitle = document.getElementById('slotEditTitle');
+  var slotEditInput = document.getElementById('slotEditInput');
+  var editingSlot = null; // {side:'top'|'bottom', idx:number}
+  var resultOverlay = document.getElementById('resultOverlay');
+  var resultCard = document.getElementById('resultCard');
+  var confettiLayer = document.getElementById('confettiLayer');
+
+  var rungs = null; // rungs[row][gap] = bool
+  var usedTop = [];
+  var svgEl = null;
+
+  function colX(i){ return MARGIN + i * COL_SPACING; }
+  function rowY(r){ return (SVG_HEIGHT / (ROWS + 1)) * (r + 1); }
+
+  function buildRungs(n){
+    var rows = [];
+    for(var r=0;r<ROWS;r++){
+      var row = new Array(Math.max(0,n-1)).fill(false);
+      var i = 0;
+      while(i < n-1){
+        if(Math.random() < 0.38){ row[i] = true; i += 2; }
+        else { i += 1; }
+      }
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  function traverse(n, startCol){
+    var col = startCol;
+    var pts = [{x:colX(col), y:0}];
+    for(var r=0;r<ROWS;r++){
+      var y = rowY(r);
+      var moved = null;
+      if(col > 0 && rungs[r][col-1]) moved = col-1;
+      else if(col < n-1 && rungs[r][col]) moved = col+1;
+      if(moved !== null){
+        pts.push({x:colX(col), y:y});
+        pts.push({x:colX(moved), y:y});
+        col = moved;
+      }
+    }
+    pts.push({x:colX(col), y:SVG_HEIGHT});
+    return { points: pts, finalCol: col };
+  }
+
+  function buildLadder(){
+    var n = topItems.length;
+    rungs = buildRungs(n);
+    usedTop = new Array(n).fill(false);
+    render();
+  }
+
+  function render(){
+    var n = topItems.length;
+    var contentWidth = MARGIN*2 + (n-1)*COL_SPACING;
+    ladderWrap.style.width = contentWidth + 'px';
+    ladderWrap.style.height = (56 + SVG_HEIGHT + 56) + 'px';
+
+    var html = '';
+    html += '<div class="pill-row" id="topRow">';
+    for(var i=0;i<n;i++){
+      html += '<div class="pill top" data-idx="'+i+'" style="left:'+(colX(i)-40)+'px;width:80px;">'+escapeHtml(topItems[i])+'</div>';
+    }
+    html += '</div>';
+
+    html += '<svg id="ladderSvg" width="'+contentWidth+'" height="'+SVG_HEIGHT+'" viewBox="0 0 '+contentWidth+' '+SVG_HEIGHT+'">';
+    for(i=0;i<n;i++){
+      html += '<line class="rail" x1="'+colX(i)+'" y1="0" x2="'+colX(i)+'" y2="'+SVG_HEIGHT+'" />';
+    }
+    for(var r=0;r<ROWS;r++){
+      var y = rowY(r);
+      for(var g=0; g<n-1; g++){
+        if(rungs[r][g]){
+          html += '<line class="rung" x1="'+colX(g)+'" y1="'+y+'" x2="'+colX(g+1)+'" y2="'+y+'" />';
+        }
+      }
+    }
+    html += '</svg>';
+
+    html += '<div class="pill-row" id="bottomRow">';
+    for(i=0;i<n;i++){
+      html += '<div class="pill bottom" style="left:'+(colX(i)-40)+'px;width:80px;">'+escapeHtml(bottomItems[i])+'</div>';
+    }
+    html += '</div>';
+
+    ladderWrap.innerHTML = html;
+    svgEl = document.getElementById('ladderSvg');
+
+    Array.prototype.forEach.call(document.querySelectorAll('#topRow .pill.top'), function(pill){
+      var idx = +pill.getAttribute('data-idx');
+      if(usedTop[idx]) pill.classList.add('used');
+      pill.addEventListener('click', function(){ onTapTop(idx); });
+    });
+  }
+
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function pointsToPath(pts){
+    var d = 'M '+pts[0].x+' '+pts[0].y;
+    for(var i=1;i<pts.length;i++) d += ' L '+pts[i].x+' '+pts[i].y;
+    return d;
+  }
+
+  function animatePath(pts, color, onDone){
+    var path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', pointsToPath(pts));
+    path.setAttribute('class','path-line');
+    path.setAttribute('stroke', color);
+    svgEl.appendChild(path);
+    var len = path.getTotalLength();
+    path.style.strokeDasharray = len;
+    path.style.strokeDashoffset = len;
+    path.getBoundingClientRect(); // reflow
+    var duration = 1.1 + len/900;
+    path.style.transition = 'stroke-dashoffset '+duration.toFixed(2)+'s linear';
+    requestAnimationFrame(function(){
+      path.style.strokeDashoffset = '0';
+    });
+    setTimeout(function(){ if(onDone) onDone(); }, duration*1000);
+  }
+
+  function onTapTop(idx){
+    var n = topItems.length;
+    var result = traverse(n, idx);
+    usedTop[idx] = true;
+    var pillEl = document.querySelector('#topRow .pill.top[data-idx="'+idx+'"]');
+    if(pillEl) pillEl.classList.add('used');
+    var color = COLORS[idx % COLORS.length];
+    animatePath(result.points, color, function(){
+      showSingleResult(topItems[idx], bottomItems[result.finalCol]);
+    });
+  }
+
+  function showSingleResult(topName, bottomName){
+    resultCard.innerHTML =
+      '<p class="result-eyebrow">결과</p>' +
+      '<p class="result-text">'+escapeHtml(topName)+' → '+escapeHtml(bottomName)+'</p>' +
+      '<button id="closeResult" class="cta-btn">확인</button>';
+    resultOverlay.classList.remove('hidden');
+    launchConfetti();
+    document.getElementById('closeResult').addEventListener('click', function(){
+      resultOverlay.classList.add('hidden');
+    });
+  }
+
+  document.getElementById('revealAllBtn').addEventListener('click', function(){
+    var n = topItems.length;
+    var lines = [];
+    for(var i=0;i<n;i++){
+      var r = traverse(n, i);
+      lines.push('<li>'+escapeHtml(topItems[i])+' → <b>'+escapeHtml(bottomItems[r.finalCol])+'</b></li>');
+      usedTop[i] = true;
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('#topRow .pill.top'), function(p){ p.classList.add('used'); });
+    resultCard.innerHTML =
+      '<p class="result-eyebrow">전체 결과</p>' +
+      '<ul class="result-list">'+lines.join('')+'</ul>' +
+      '<button id="closeResult" class="cta-btn">확인</button>';
+    resultOverlay.classList.remove('hidden');
+    launchConfetti();
+    document.getElementById('closeResult').addEventListener('click', function(){
+      resultOverlay.classList.add('hidden');
+    });
+  });
+
+  document.getElementById('reshuffleBtn').addEventListener('click', function(){
+    buildLadder();
+  });
+
+  var MIN_PAIRS = 2, MAX_PAIRS = 10;
+
+  function renderEditPanel(){
+    countDisplay.textContent = topItems.length;
+    pairList.innerHTML = '';
+    topItems.forEach(function(topVal, idx){
+      var row = document.createElement('div');
+      row.className = 'pair-row';
+      row.innerHTML =
+        '<span class="pair-num">'+(idx+1)+'</span>' +
+        '<div class="pair-slot top-slot" data-side="top" data-idx="'+idx+'"></div>' +
+        '<span class="pair-arrow">→</span>' +
+        '<div class="pair-slot bottom-slot" data-side="bottom" data-idx="'+idx+'"></div>';
+      row.querySelector('.top-slot').textContent = topVal;
+      row.querySelector('.bottom-slot').textContent = bottomItems[idx];
+      pairList.appendChild(row);
+    });
+    Array.prototype.forEach.call(pairList.querySelectorAll('.pair-slot'), function(el){
+      el.addEventListener('click', function(){
+        openSlotEdit(el.getAttribute('data-side'), +el.getAttribute('data-idx'));
+      });
+    });
+  }
+
+  function openSlotEdit(side, idx){
+    editingSlot = { side: side, idx: idx };
+    var label = side === 'top' ? '참가자' : '결과';
+    slotEditTitle.textContent = (idx+1) + '번 ' + label + ' 수정';
+    slotEditInput.value = side === 'top' ? topItems[idx] : bottomItems[idx];
+    slotEditOverlay.classList.remove('hidden');
+    setTimeout(function(){ slotEditInput.focus(); slotEditInput.select(); }, 50);
+  }
+
+  function commitSlotEdit(){
+    var val = slotEditInput.value.trim();
+    if(val){
+      if(editingSlot.side === 'top') topItems[editingSlot.idx] = val;
+      else bottomItems[editingSlot.idx] = val;
+    }
+    slotEditOverlay.classList.add('hidden');
+    renderEditPanel();
+    buildLadder();
+  }
+  document.getElementById('slotEditConfirm').addEventListener('click', commitSlotEdit);
+  document.getElementById('slotEditCancel').addEventListener('click', function(){
+    slotEditOverlay.classList.add('hidden');
+  });
+  slotEditInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') commitSlotEdit();
+  });
+
+  function nextItemLabel(items){
+    var n = items.length;
+    if(n > 0){
+      var m = items[n-1].match(/^(.*?)(\d+)$/);
+      if(m) return m[1] + (parseInt(m[2],10)+1);
+    }
+    return '항목 ' + (n+1);
+  }
+
+  document.getElementById('countIncBtn').addEventListener('click', function(){
+    if(topItems.length >= MAX_PAIRS) return;
+    topItems.push(nextItemLabel(topItems));
+    bottomItems.push(nextItemLabel(bottomItems));
+    renderEditPanel();
+    buildLadder();
+  });
+  document.getElementById('countDecBtn').addEventListener('click', function(){
+    if(topItems.length <= MIN_PAIRS) return;
+    topItems.pop();
+    bottomItems.pop();
+    renderEditPanel();
+    buildLadder();
+  });
+
+  document.getElementById('editBtn').addEventListener('click', function(){
+    renderEditPanel();
+    editOverlay.classList.remove('hidden');
+  });
+  document.getElementById('closeEdit').addEventListener('click', function(){
+    editOverlay.classList.add('hidden');
+  });
+
+  function launchConfetti(){
+    var colors = COLORS.concat(['#CB6A2F']);
+    for(var i=0;i<26;i++){
+      var el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = (Math.random()*100) + 'vw';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      var dur = 1.6 + Math.random()*1.2;
+      el.style.animationDuration = dur + 's';
+      el.style.animationDelay = (Math.random()*0.3) + 's';
+      confettiLayer.appendChild(el);
+      (function(node, d){ setTimeout(function(){ node.remove(); }, (d+0.5)*1000); })(el, dur);
+    }
+  }
+
+  buildLadder();
+})();
+</script>
+</body>
+</html>

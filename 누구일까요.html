@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>누구일까요?</title>
+<style>
+:root{
+  --bg:#F7F1E1;--paper:#FBF8F0;--ink:#262220;--ink-soft:#6b6259;
+  --blue:#1F5C8B;--red:#C1362E;--yellow:#E3A72E;--green:#3E7A5D;--cta:#CB6A2F;--purple:#7B3F6B;--teal:#2E7DA3;
+  --line:rgba(38,34,32,0.16);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.topbar a.back{min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:800;font-size:14px;padding:0 12px;}
+.topbar .ttl{font-size:20px;font-weight:900;letter-spacing:-0.3px;}
+.topbar .sub{font-size:12px;color:var(--ink-soft);font-weight:600;margin-left:auto;text-align:right;}
+.topbar a.back{white-space:nowrap;flex:none;}
+.topbar .ttl{white-space:nowrap;}
+@media(max-width:560px){.topbar{padding:10px 12px;gap:10px;}.topbar .sub{display:none;}.topbar .ttl{font-size:18px;}.app{padding:12px 12px 32px;}}
+.app{max-width:1000px;margin:0 auto;padding:16px 16px 40px;}
+button{font-family:inherit;cursor:pointer;border:0;}
+.btn{min-height:52px;padding:0 22px;border-radius:14px;font-size:17px;font-weight:800;color:#fff;background:var(--cta);box-shadow:0 4px 0 rgba(0,0,0,0.18);}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.18);}
+.btn.blue{background:var(--blue);} .btn.red{background:var(--red);} .btn.green{background:var(--green);}
+.btn.purple{background:var(--purple);} .btn.teal{background:var(--teal);}
+.btn.yellow{background:var(--yellow);color:var(--ink);}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line);box-shadow:none;}
+.btn.small{min-height:44px;font-size:15px;padding:0 14px;}
+.btn[disabled]{opacity:.4;pointer-events:none;}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.center{text-align:center;}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;}
+select.sel{min-height:48px;font-size:16px;font-weight:700;border-radius:12px;border:1px solid var(--line);background:var(--paper);padding:0 12px;color:var(--ink);font-family:inherit;}
+.stepper{display:inline-flex;align-items:center;gap:6px;}
+.stepper button{width:48px;height:48px;border-radius:12px;background:var(--paper);border:1px solid var(--line);font-size:24px;font-weight:900;color:var(--ink);}
+.stepper .val{min-width:44px;text-align:center;font-size:22px;font-weight:900;}
+.hint{font-size:13px;color:var(--ink-soft);font-weight:600;}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(38,34,32,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.ov.on{display:flex;}
+.modal{background:var(--paper);border-radius:22px;padding:22px;max-width:520px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.35);}
+.modal h2{margin:0 0 12px;font-size:22px;font-weight:900;}
+.modal .big{font-size:56px;text-align:center;line-height:1.1;margin:6px 0;}
+.modal .msg{font-size:18px;font-weight:700;text-align:center;line-height:1.5;margin:6px 0 16px;}
+.modal .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:200;}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:800;background:var(--bg);border:1px solid var(--line);}
+
+
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;}
+.prog{font-size:16px;font-weight:900;}
+.bar{flex:1;min-width:120px;height:14px;border-radius:99px;background:rgba(38,34,32,.12);overflow:hidden;}
+.bar i{display:block;height:100%;background:var(--cta);width:0;transition:width .3s;}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:18px;}
+.who{font-size:clamp(48px,min(16vw,17vh),120px);text-align:center;line-height:1.1;}
+.who.rev{font-size:clamp(34px,min(10vw,12vh),72px);font-weight:900;}
+.pts{text-align:center;font-size:20px;font-weight:900;color:var(--cta);margin:4px 0 10px;}
+.clues{display:flex;flex-direction:column;gap:10px;}
+.cl{display:flex;gap:12px;align-items:center;background:var(--bg);border-radius:16px;padding:12px 14px;font-size:clamp(18px,3.6vw,26px);font-weight:800;line-height:1.4;word-break:keep-all;animation:pop .3s;}
+.cl b{flex:none;width:38px;height:38px;border-radius:50%;background:var(--cta);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.acts2{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:16px;}
+.acts2 .btn{min-width:160px;min-height:64px;font-size:20px;}
+
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← 메뉴</a><div class="ttl">누구일까요?</div><div class="sub">여행바구니 · 어린이 역사체험</div></div>
+<div class="app">
+
+<div class="top">
+  <select class="sel" id="topic"></select>
+  <span class="prog" id="prog"></span>
+  <div class="bar"><i id="bar"></i></div>
+  <span class="pill" id="sc">⭐ 0점</span>
+</div>
+<div class="card">
+  <div class="who" id="who">🕵️</div>
+  <div class="pts" id="pts"></div>
+  <div class="clues" id="clues"></div>
+  <div class="acts2" id="ac"></div>
+</div>
+<div class="hint center" style="margin-top:12px">힌트가 적을수록 높은 점수! 아이들이 정답을 외치면 선생님이 정답 보기를 눌러요</div>
+
+</div>
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+<canvas id="confetti"></canvas>
+<script>
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+/* 셔플백: 문제 은행이 다 소진될 때까지 중복 없이 n개씩 뽑는다 */
+function makeBag(){return {pool:[]};}
+function takeRound(bag,all,n){
+  n=Math.min(n,all.length);
+  const out=[];
+  while(out.length<n){
+    if(bag.pool.length===0){
+      let fresh=shuffle(all.map((_,i)=>i));
+      // 직전 라운드와 연속 중복 방지
+      fresh=fresh.filter(i=>!out.includes(i)).concat(fresh.filter(i=>out.includes(i)));
+      bag.pool=fresh;
+    }
+    const i=bag.pool.shift();
+    if(!out.includes(i))out.push(i);
+  }
+  return out.map(i=>all[i]);
+}
+/* 소리 */
+let _ac=null;
+function beep(f,d,type){
+  try{
+    _ac=_ac||new (window.AudioContext||window.webkitAudioContext)();
+    const o=_ac.createOscillator(),g=_ac.createGain();
+    o.type=type||'sine';o.frequency.value=f;g.gain.value=0.12;
+    o.connect(g);g.connect(_ac.destination);o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001,_ac.currentTime+(d||0.15));
+    o.stop(_ac.currentTime+(d||0.15)+0.02);
+  }catch(e){}
+}
+function sndOk(){beep(660,.12);setTimeout(()=>beep(880,.18),110);}
+function sndNo(){beep(220,.25,'square');}
+function sndTick(){beep(520,.06);}
+function sndAlarm(){let k=0;const t=setInterval(()=>{beep(k%2?880:660,.22,'triangle');if(++k>=6)clearInterval(t);},260);}
+/* 폭죽 */
+function confetti(){
+  let cv=$('#confetti');if(!cv)return;
+  const ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return;
+  cv.width=innerWidth;cv.height=innerHeight;
+  const cols=['#1F5C8B','#C1362E','#E3A72E','#3E7A5D','#CB6A2F','#7B3F6B','#2E7DA3'];
+  const ps=Array.from({length:90},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.4,
+    vx:(Math.random()-.5)*4,vy:2+Math.random()*4,s:6+Math.random()*8,c:pick(cols),r:Math.random()*6}));
+  let f=0;
+  (function step(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.2;ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);ctx.restore();});
+    if(++f<110)requestAnimationFrame(step);else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+/* 모달: body는 HTML, buttons=[{t,cls,fn}] */
+function modal(o){
+  const ov=$('#ov'),m=$('#modal');
+  m.innerHTML=(o.title?'<h2>'+esc(o.title)+'</h2>':'')+(o.icon?'<div class="big">'+o.icon+'</div>':'')+
+    (o.msg?'<div class="msg">'+o.msg+'</div>':'')+(o.html||'')+'<div class="acts" id="macts"></div>';
+  const acts=$('#macts');
+  (o.buttons||[{t:'확인'}]).forEach(b=>{
+    const el=document.createElement('button');el.className='btn '+(b.cls||'');el.textContent=b.t;
+    el.onclick=()=>{ if(b.keep!==true)closeModal(); if(b.fn)b.fn(); };
+    acts.appendChild(el);
+  });
+  ov.classList.add('on');
+}
+function closeModal(){$('#ov').classList.remove('on');}
+
+const BANK={"고대·고려": [["광개토대왕", ["고구려의 제19대 왕이에요.", "'영락'이라는 자신만의 연호를 썼어요.", "아들 장수왕이 큰 비석을 세워 업적을 남겼어요.", "고구려의 땅을 만주까지 크게 넓혔어요.", "이름에 '땅을 넓게 열었다'는 뜻이 들어 있어요."]], ["을지문덕", ["고구려의 장군이에요.", "612년에 수나라의 대군과 싸웠어요.", "적장 우중문에게 시를 지어 보냈어요.", "일부러 져 주며 적을 깊숙이 끌어들였어요.", "살수대첩의 영웅이에요."]], ["대조영", ["고구려가 무너진 뒤 사람들을 이끌었어요.", "당나라의 추격을 피해 동쪽으로 이동했어요.", "동모산 근처에서 나라를 세웠어요.", "698년의 일이에요.", "발해를 세운 사람이에요."]], ["김유신", ["금관가야 왕족의 후손이에요.", "화랑 출신으로 신라의 장군이 되었어요.", "김춘추와 힘을 합쳤어요.", "황산벌에서 백제의 계백과 싸웠어요.", "신라의 삼국 통일을 이끈 장군이에요."]], ["장보고", ["어릴 때 이름은 '궁복'이에요.", "신라 사람으로 당나라에서 군인으로 활약했어요.", "완도에 청해진을 세웠어요.", "바다를 지키며 신라·당·일본의 무역을 이끌었어요.", "'해상왕'이라고 불려요."]], ["선덕여왕", ["신라의 제27대 왕이에요.", "황룡사 9층 목탑을 세웠어요.", "첨성대를 세웠다고 전해져요.", "김춘추와 김유신이 곁에서 도왔어요.", "신라 최초의 여왕이에요."]], ["왕건", ["송악(지금의 개성) 지방 호족의 아들이에요.", "처음에는 궁예 밑에서 일했어요.", "918년에 나라를 세웠어요.", "936년에 후삼국을 통일했어요.", "고려를 세운 임금이에요."]], ["서희", ["고려 성종 때 신하예요.", "거란의 장수 소손녕과 마주 앉았어요.", "말솜씨로 전쟁을 막았어요.", "담판의 결과 강동 6주를 얻었어요.", "거란과의 담판으로 유명한 외교관이에요."]], ["강감찬", ["과거에 장원으로 급제한 문신이에요.", "나이가 많은 때 거란과 싸웠어요.", "1019년에 큰 승리를 거두었어요.", "귀주에서 싸웠어요.", "귀주대첩의 영웅이에요."]], ["최무선", ["고려 말의 사람이에요.", "화약 만드는 방법을 연구해 성공했어요.", "화통도감을 설치하자고 건의했어요.", "화약 무기로 왜구의 배를 물리치는 데 큰 공을 세웠어요.", "화약을 만든 것으로 유명한 사람이에요."]]], "조선": [["세종대왕", ["조선의 네 번째 임금이에요.", "집현전에서 학자들과 함께 연구하게 했어요.", "장영실 같은 과학자를 아껴 주었어요.", "만 원 지폐에 얼굴이 그려져 있어요.", "우리 글자 '한글'을 만들었어요."]], ["이순신", ["『난중일기』라는 일기를 썼어요.", "임진왜란 때 바다에서 싸운 장군이에요.", "한산도 앞바다에서 크게 이겼어요.", "광화문 광장에 동상이 서 있어요.", "거북선을 앞세워 싸웠어요."]], ["이성계", ["고려의 장군으로 홍건적과 왜구를 물리쳤어요.", "위화도에서 군대를 돌렸어요.", "1392년에 임금이 되었어요.", "도읍을 한양으로 옮겼어요.", "조선을 세운 임금이에요."]], ["허준", ["조선 선조 때 임금님의 병을 돌보는 의관이었어요.", "약재 이름을 한글로도 적어 백성이 쉽게 알도록 했어요.", "광해군 때 책을 완성했어요.", "그 책이 유네스코 세계기록유산에 올랐어요.", "『동의보감』을 쓴 의학자예요."]], ["정약용", ["호는 '다산'이에요.", "전라도 강진에서 오랫동안 유배 생활을 했어요.", "『목민심서』를 썼어요.", "수원 화성을 쌓을 때 거중기를 설계했어요.", "정조 임금을 도운 실학자예요."]], ["김정호", ["조선 후기의 지리학자예요.", "산과 강, 길을 아주 자세하게 표시했어요.", "지도를 목판에 새겨 여러 장 찍을 수 있게 했어요.", "백두산에서 제주도까지 우리 땅을 그렸어요.", "「대동여지도」를 만들었어요."]], ["신사임당", ["강릉에서 태어났어요.", "시와 글씨, 그림에 뛰어났어요.", "풀과 벌레를 그린 「초충도」가 유명해요.", "율곡 이이의 어머니예요.", "오만 원 지폐에 그려져 있어요."]], ["안용복", ["부산 동래의 어부예요.", "조선 숙종 때 활동했어요.", "일본으로 건너가 항의했어요.", "울릉도와 독도가 조선 땅임을 알렸어요.", "독도를 지킨 사람으로 알려져 있어요."]], ["장영실", ["관청의 노비 출신이에요.", "세종대왕이 재능을 알아보았어요.", "해시계·물시계 같은 시계를 만들었어요.", "스스로 시간을 알리는 자격루를 만들었어요.", "측우기를 만드는 데도 참여한 과학자예요."]]], "근현대": [["전봉준", ["키가 작아서 '녹두 장군'이라 불렸어요.", "전라도 고부에서 농민들과 함께 일어섰어요.", "1894년에 일어난 동학 농민 운동이에요.", "우금치에서 일본군·관군과 싸웠어요.", "동학 농민군의 지도자예요."]], ["서재필", ["미국에서 의학을 공부한 사람이에요.", "독립협회를 만들었어요.", "1896년에 신문을 만들었어요.", "한글로도 쓴 「독립신문」이에요.", "독립문을 세우는 데 앞장섰어요."]], ["유관순", ["이화학당에서 공부한 학생이에요.", "서울에서 만세 운동에 참여한 뒤 고향 천안으로 내려갔어요.", "천안 아우내 장터에서 만세 운동을 이끌었어요.", "서대문형무소에서 어린 나이에 순국했어요.", "3·1 운동의 소녀 열사예요."]], ["안중근", ["황해도 출신이에요.", "동지들과 함께 손가락을 잘라 독립의 뜻을 맹세했어요.", "『동양평화론』이라는 글을 쓰려고 했어요.", "1909년 중국 하얼빈역에서 의거를 일으켰어요.", "이토 히로부미를 처단한 독립운동가예요."]], ["윤봉길", ["호는 '매헌'이에요.", "한인애국단에 들어갔어요.", "1932년 4월 29일 상하이에서 의거했어요.", "훙커우 공원에서 물통 모양 폭탄을 던졌어요.", "일본 장군들에게 폭탄을 던진 독립운동가예요."]], ["김구", ["호는 '백범'이에요.", "자서전 『백범일지』를 썼어요.", "한인애국단을 만들었어요.", "대한민국 임시정부의 주석을 지냈어요.", "독립운동의 큰 지도자였어요."]], ["김좌진", ["북로군정서의 총사령관이에요.", "만주에서 독립군을 이끌었어요.", "1920년에 일본군을 크게 물리쳤어요.", "청산리에서 싸웠어요.", "청산리 대첩의 영웅이에요."]]], "전체 섞어서": [["세종대왕", ["조선의 네 번째 임금이에요.", "집현전에서 학자들과 함께 연구하게 했어요.", "장영실 같은 과학자를 아껴 주었어요.", "만 원 지폐에 얼굴이 그려져 있어요.", "우리 글자 '한글'을 만들었어요."]], ["이순신", ["『난중일기』라는 일기를 썼어요.", "임진왜란 때 바다에서 싸운 장군이에요.", "한산도 앞바다에서 크게 이겼어요.", "광화문 광장에 동상이 서 있어요.", "거북선을 앞세워 싸웠어요."]], ["광개토대왕", ["고구려의 제19대 왕이에요.", "'영락'이라는 자신만의 연호를 썼어요.", "아들 장수왕이 큰 비석을 세워 업적을 남겼어요.", "고구려의 땅을 만주까지 크게 넓혔어요.", "이름에 '땅을 넓게 열었다'는 뜻이 들어 있어요."]], ["유관순", ["이화학당에서 공부한 학생이에요.", "서울에서 만세 운동에 참여한 뒤 고향 천안으로 내려갔어요.", "천안 아우내 장터에서 만세 운동을 이끌었어요.", "서대문형무소에서 어린 나이에 순국했어요.", "3·1 운동의 소녀 열사예요."]], ["안중근", ["황해도 출신이에요.", "동지들과 함께 손가락을 잘라 독립의 뜻을 맹세했어요.", "『동양평화론』이라는 글을 쓰려고 했어요.", "1909년 중국 하얼빈역에서 의거를 일으켰어요.", "이토 히로부미를 처단한 독립운동가예요."]], ["허준", ["조선 선조 때 임금님의 병을 돌보는 의관이었어요.", "약재 이름을 한글로도 적어 백성이 쉽게 알도록 했어요.", "광해군 때 책을 완성했어요.", "그 책이 유네스코 세계기록유산에 올랐어요.", "『동의보감』을 쓴 의학자예요."]], ["정약용", ["호는 '다산'이에요.", "전라도 강진에서 오랫동안 유배 생활을 했어요.", "『목민심서』를 썼어요.", "수원 화성을 쌓을 때 거중기를 설계했어요.", "정조 임금을 도운 실학자예요."]], ["김정호", ["조선 후기의 지리학자예요.", "산과 강, 길을 아주 자세하게 표시했어요.", "지도를 목판에 새겨 여러 장 찍을 수 있게 했어요.", "백두산에서 제주도까지 우리 땅을 그렸어요.", "「대동여지도」를 만들었어요."]], ["왕건", ["송악(지금의 개성) 지방 호족의 아들이에요.", "처음에는 궁예 밑에서 일했어요.", "918년에 나라를 세웠어요.", "936년에 후삼국을 통일했어요.", "고려를 세운 임금이에요."]], ["이성계", ["고려의 장군으로 홍건적과 왜구를 물리쳤어요.", "위화도에서 군대를 돌렸어요.", "1392년에 임금이 되었어요.", "도읍을 한양으로 옮겼어요.", "조선을 세운 임금이에요."]], ["김유신", ["금관가야 왕족의 후손이에요.", "화랑 출신으로 신라의 장군이 되었어요.", "김춘추와 힘을 합쳤어요.", "황산벌에서 백제의 계백과 싸웠어요.", "신라의 삼국 통일을 이끈 장군이에요."]], ["장보고", ["어릴 때 이름은 '궁복'이에요.", "신라 사람으로 당나라에서 군인으로 활약했어요.", "완도에 청해진을 세웠어요.", "바다를 지키며 신라·당·일본의 무역을 이끌었어요.", "'해상왕'이라고 불려요."]], ["신사임당", ["강릉에서 태어났어요.", "시와 글씨, 그림에 뛰어났어요.", "풀과 벌레를 그린 「초충도」가 유명해요.", "율곡 이이의 어머니예요.", "오만 원 지폐에 그려져 있어요."]], ["최무선", ["고려 말의 사람이에요.", "화약 만드는 방법을 연구해 성공했어요.", "화통도감을 설치하자고 건의했어요.", "화약 무기로 왜구의 배를 물리치는 데 큰 공을 세웠어요.", "화약을 만든 것으로 유명한 사람이에요."]], ["대조영", ["고구려가 무너진 뒤 사람들을 이끌었어요.", "당나라의 추격을 피해 동쪽으로 이동했어요.", "동모산 근처에서 나라를 세웠어요.", "698년의 일이에요.", "발해를 세운 사람이에요."]], ["서희", ["고려 성종 때 신하예요.", "거란의 장수 소손녕과 마주 앉았어요.", "말솜씨로 전쟁을 막았어요.", "담판의 결과 강동 6주를 얻었어요.", "거란과의 담판으로 유명한 외교관이에요."]], ["강감찬", ["과거에 장원으로 급제한 문신이에요.", "나이가 많은 때 거란과 싸웠어요.", "1019년에 큰 승리를 거두었어요.", "귀주에서 싸웠어요.", "귀주대첩의 영웅이에요."]], ["을지문덕", ["고구려의 장군이에요.", "612년에 수나라의 대군과 싸웠어요.", "적장 우중문에게 시를 지어 보냈어요.", "일부러 져 주며 적을 깊숙이 끌어들였어요.", "살수대첩의 영웅이에요."]], ["선덕여왕", ["신라의 제27대 왕이에요.", "황룡사 9층 목탑을 세웠어요.", "첨성대를 세웠다고 전해져요.", "김춘추와 김유신이 곁에서 도왔어요.", "신라 최초의 여왕이에요."]], ["안용복", ["부산 동래의 어부예요.", "조선 숙종 때 활동했어요.", "일본으로 건너가 항의했어요.", "울릉도와 독도가 조선 땅임을 알렸어요.", "독도를 지킨 사람으로 알려져 있어요."]], ["윤봉길", ["호는 '매헌'이에요.", "한인애국단에 들어갔어요.", "1932년 4월 29일 상하이에서 의거했어요.", "훙커우 공원에서 물통 모양 폭탄을 던졌어요.", "일본 장군들에게 폭탄을 던진 독립운동가예요."]], ["김구", ["호는 '백범'이에요.", "자서전 『백범일지』를 썼어요.", "한인애국단을 만들었어요.", "대한민국 임시정부의 주석을 지냈어요.", "독립운동의 큰 지도자였어요."]], ["전봉준", ["키가 작아서 '녹두 장군'이라 불렸어요.", "전라도 고부에서 농민들과 함께 일어섰어요.", "1894년에 일어난 동학 농민 운동이에요.", "우금치에서 일본군·관군과 싸웠어요.", "동학 농민군의 지도자예요."]], ["김좌진", ["북로군정서의 총사령관이에요.", "만주에서 독립군을 이끌었어요.", "1920년에 일본군을 크게 물리쳤어요.", "청산리에서 싸웠어요.", "청산리 대첩의 영웅이에요."]], ["서재필", ["미국에서 의학을 공부한 사람이에요.", "독립협회를 만들었어요.", "1896년에 신문을 만들었어요.", "한글로도 쓴 「독립신문」이에요.", "독립문을 세우는 데 앞장섰어요."]], ["장영실", ["관청의 노비 출신이에요.", "세종대왕이 재능을 알아보았어요.", "해시계·물시계 같은 시계를 만들었어요.", "스스로 시간을 알리는 자격루를 만들었어요.", "측우기를 만드는 데도 참여한 과학자예요."]]]};
+const N=8;
+const bags={};let topic='',round=[],idx=0,score=0,shown=1,revealed=false;
+const ts=$('#topic');
+Object.keys(BANK).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k+' ('+BANK[k].length+'명)';ts.appendChild(o);});
+ts.onchange=()=>start();
+function start(){topic=ts.value;bags[topic]=bags[topic]||makeBag();round=takeRound(bags[topic],BANK[topic],N);idx=0;score=0;show();}
+function pts(){return 6-shown;}
+function draw(){
+  const [name,cl]=round[idx];
+  const w=$('#who');
+  if(revealed){w.className='who rev';w.textContent=name;$('#pts').textContent='';}
+  else{w.className='who';w.textContent='🕵️';$('#pts').textContent='지금 맞히면 ⭐ '+pts()+'점';}
+  const c=$('#clues');c.innerHTML='';
+  for(let i=0;i<shown;i++){const d=document.createElement('div');d.className='cl';d.innerHTML='<b>'+(i+1)+'</b><span>'+esc(cl[i])+'</span>';if(i<shown-1)d.style.animation='none';c.appendChild(d);}
+  const ac=$('#ac');ac.innerHTML='';
+  const mk=(t,cls,fn)=>{const b=document.createElement('button');b.className='btn '+cls;b.textContent=t;b.onclick=fn;ac.appendChild(b);};
+  if(!revealed){
+    if(shown<5)mk('💡 다음 힌트','teal',()=>{shown++;sndTick();draw();});
+    mk('👀 정답 보기','purple',()=>{revealed=true;sndTick();draw();});
+  }else{
+    mk('👍 맞혔어요 (+'+pts()+')','green',()=>next(true));
+    mk('😅 못 맞혔어요','ghost',()=>next(false));
+  }
+}
+function show(){
+  shown=1;revealed=false;
+  $('#prog').textContent=(idx+1)+' / '+round.length;
+  $('#bar').style.width=(idx/round.length*100)+'%';
+  $('#sc').textContent='⭐ '+score+'점';
+  draw();
+}
+function next(ok){
+  if(ok){score+=pts();sndOk();}else sndNo();
+  if(idx+1>=round.length){finish();return;}
+  idx++;show();
+}
+function finish(){
+  $('#bar').style.width='100%';$('#sc').textContent='⭐ '+score+'점';
+  const max=round.length*5,r=score/max;
+  const [ic,msg]=r>=.8?['🏆','추리 대장이에요!']:r>=.5?['😄','아주 잘했어요!']:['🙂','좋아요! 한 번 더 도전!'];
+  if(r>=.5)confetti();
+  modal({icon:ic,title:score+' / '+max+'점',msg:msg,buttons:[{t:'다시 (새 인물)',cls:'cta',fn:()=>start()},{t:'닫기',cls:'ghost'}]});
+}
+start();
+
+</script>
+</body>
+</html>

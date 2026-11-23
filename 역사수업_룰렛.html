@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>역사수업 룰렛</title>
+<style>
+  :root{
+    --bg:#F7F1E1;
+    --paper:#FBF8F0;
+    --ink:#262220;
+    --ink-soft:#6b6259;
+    --blue:#1F5C8B;
+    --red:#C1362E;
+    --yellow:#E3A72E;
+    --green:#3E7A5D;
+    --cta:#CB6A2F;
+    --line: rgba(38,34,32,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    -webkit-user-select:none;user-select:none;
+    touch-action:manipulation;
+    overflow:hidden;
+  }
+  .app{
+    height:100%;
+    display:flex;
+    flex-direction:column;
+  }
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 18px;
+    border-bottom:1px solid var(--line);
+    background:var(--paper);
+    flex-shrink:0;
+  }
+  .topbar h1{
+    font-size:19px;
+    margin:0;
+    letter-spacing:-0.2px;
+    font-weight:800;
+  }
+  .topbar .sub{
+    font-size:12px;
+    color:var(--ink-soft);
+    font-weight:500;
+    margin-top:2px;
+  }
+  .topbar-actions{
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  select#presetSelect{
+    font-size:15px;
+    font-weight:700;
+    padding:9px 12px;
+    border-radius:10px;
+    border:1.5px solid var(--line);
+    background:var(--paper);
+    color:var(--ink);
+    max-width:38vw;
+  }
+  button{
+    font-family:inherit;
+    cursor:pointer;
+    border:none;
+  }
+  .icon-btn{
+    font-size:14px;
+    font-weight:700;
+    padding:9px 14px;
+    border-radius:10px;
+    background:var(--paper);
+    border:1.5px solid var(--ink);
+    color:var(--ink);
+  }
+  .icon-btn:active{transform:scale(0.96);}
+  .ghost-btn{
+    font-size:14px;
+    font-weight:700;
+    padding:9px 16px;
+    border-radius:10px;
+    background:transparent;
+    border:1.5px solid var(--line);
+    color:var(--ink-soft);
+  }
+  .cta-btn{
+    font-size:16px;
+    font-weight:800;
+    padding:12px 20px;
+    border-radius:12px;
+    background:var(--cta);
+    color:var(--paper);
+  }
+  .cta-btn:active{transform:scale(0.97);}
+
+  .stage{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    padding:10px;
+    min-height:0;
+  }
+
+  .wheel-shell{
+    position:relative;
+    width:min(78vmin,560px);
+    height:min(78vmin,560px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .wheel-frame{
+    position:absolute;
+    inset:-14px;
+    border-radius:50%;
+    background:repeating-conic-gradient(
+      var(--blue) 0deg 15deg,
+      var(--red) 15deg 30deg,
+      var(--yellow) 30deg 45deg,
+      var(--green) 45deg 60deg
+    );
+    box-shadow:0 10px 30px rgba(38,34,32,0.18);
+  }
+  .wheel-frame::after{
+    content:"";
+    position:absolute;
+    inset:10px;
+    border-radius:50%;
+    background:var(--bg);
+  }
+  .wheel-rotor{
+    position:relative;
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    will-change:transform;
+    filter:drop-shadow(0 4px 10px rgba(38,34,32,0.15));
+  }
+  .wheel-rotor canvas{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    display:block;
+  }
+  .pointer{
+    position:absolute;
+    top:-22px;
+    left:50%;
+    transform:translateX(-50%);
+    width:0;height:0;
+    border-left:16px solid transparent;
+    border-right:16px solid transparent;
+    border-top:28px solid var(--red);
+    z-index:5;
+    filter:drop-shadow(0 3px 3px rgba(0,0,0,0.25));
+  }
+  .pointer::after{
+    content:"";
+    position:absolute;
+    top:-28px;left:-6px;
+    width:12px;height:12px;
+    border-radius:50%;
+    background:var(--yellow);
+    border:2px solid var(--paper);
+  }
+  .hub-btn{
+    position:absolute;
+    width:26%;
+    height:26%;
+    border-radius:50%;
+    background:var(--cta);
+    color:var(--paper);
+    font-size:clamp(14px,2.6vmin,22px);
+    font-weight:800;
+    z-index:4;
+    border:4px solid var(--paper);
+    box-shadow:0 4px 14px rgba(38,34,32,0.25);
+  }
+  .hub-btn:active{transform:scale(0.95);}
+  .hub-btn:disabled{opacity:0.5;}
+
+  .controls-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .toggle{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:14px;
+    font-weight:700;
+    color:var(--ink-soft);
+  }
+  .toggle input{width:18px;height:18px;}
+  .count-info{
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    background:var(--paper);
+    padding:6px 12px;
+    border-radius:20px;
+    border:1px solid var(--line);
+  }
+
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(38,34,32,0.55);
+    display:flex;align-items:center;justify-content:center;
+    z-index:50;
+    padding:20px;
+  }
+  .overlay.hidden{display:none;}
+
+  .panel{
+    background:var(--paper);
+    border-radius:18px;
+    padding:20px;
+    width:min(92vw,480px);
+    max-height:88vh;
+    overflow:auto;
+    box-shadow:0 20px 50px rgba(0,0,0,0.3);
+  }
+  .panel-head{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:12px;
+  }
+  .panel-head h2{margin:0;font-size:18px;font-weight:800;}
+  .panel label.field-label{
+    display:block;font-size:12px;font-weight:700;color:var(--ink-soft);
+    margin:12px 0 6px;
+  }
+  #presetNameInput{
+    width:100%;
+    font-size:15px;
+    padding:11px 12px;
+    border-radius:10px;
+    border:1.5px solid var(--line);
+    font-family:inherit;
+  }
+  .panel-row{
+    display:flex;gap:8px;margin-top:12px;
+  }
+  .panel-row .cta-btn, .panel-row .ghost-btn{flex:1;}
+  .toggle-row{
+    display:flex;align-items:center;gap:8px;margin-top:14px;
+  }
+  .stepper-row{
+    display:flex;align-items:center;justify-content:center;gap:16px;
+    margin:6px 0 16px;
+  }
+  .step-btn{
+    width:46px;height:46px;border-radius:12px;
+    background:var(--paper);border:1.5px solid var(--ink);
+    font-size:22px;font-weight:800;color:var(--ink);line-height:1;
+  }
+  .step-btn:active{transform:scale(0.93);}
+  .count-display{font-size:22px;font-weight:900;min-width:70px;text-align:center;}
+  .slot-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+    gap:10px;margin-bottom:6px;
+  }
+  .slot-pill{
+    padding:10px 10px;border-radius:10px;
+    background:var(--bg);border:1.5px solid var(--line);
+    text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .slot-pill:active{transform:scale(0.96);background:#F0E9D6;}
+  .slot-pill .slot-num{display:block;font-size:11px;font-weight:700;color:var(--ink-soft);margin-bottom:2px;}
+  .slot-pill .slot-val{display:block;font-size:14px;font-weight:800;}
+  .slot-edit-overlay{
+    position:fixed;inset:0;background:rgba(38,34,32,0.6);
+    display:flex;align-items:center;justify-content:center;z-index:80;padding:20px;
+  }
+  .slot-edit-overlay.hidden{display:none;}
+  .slot-edit-card{background:var(--paper);border-radius:16px;padding:20px;width:min(88vw,360px);}
+  .slot-edit-card h3{margin:0 0 12px;font-size:16px;font-weight:800;}
+  #slotEditInput{
+    width:100%;font-size:18px;padding:12px;border-radius:10px;
+    border:1.5px solid var(--line);font-family:inherit;margin-bottom:14px;
+  }
+
+  .result-card{
+    background:var(--paper);
+    border-radius:20px;
+    padding:34px 28px;
+    width:min(90vw,420px);
+    text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.35);
+    animation:popIn 0.35s cubic-bezier(0.2,0.8,0.2,1);
+  }
+  @keyframes popIn{
+    from{transform:scale(0.7);opacity:0;}
+    to{transform:scale(1);opacity:1;}
+  }
+  .result-eyebrow{
+    margin:0 0 10px;
+    font-size:13px;
+    font-weight:800;
+    letter-spacing:2px;
+    color:var(--cta);
+  }
+  .result-text{
+    margin:0 0 22px;
+    font-size:clamp(24px,6vw,38px);
+    font-weight:900;
+    color:var(--ink);
+    word-break:keep-all;
+    line-height:1.3;
+  }
+  .confetti-layer{
+    position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:49;
+  }
+  .confetti-piece{
+    position:absolute;
+    top:-20px;
+    width:10px;height:16px;
+    opacity:0.9;
+    animation-name:fall;
+    animation-timing-function:linear;
+    animation-fill-mode:forwards;
+  }
+  @keyframes fall{
+    to{ transform:translateY(110vh) rotate(540deg); opacity:0.2; }
+  }
+  .empty-hint{
+    font-size:14px;color:var(--ink-soft);text-align:center;padding:20px;
+  }
+  .menu-back{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;margin-bottom:6px;border-radius:10px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-size:13px;font-weight:800;}
+  @media(max-width:640px){
+    .topbar{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+    .topbar>div:first-child{flex:1 1 100%;}
+    .topbar h1{white-space:nowrap;}
+    .topbar-actions{flex:1 1 100%;flex-wrap:wrap;justify-content:flex-start;}
+    .topbar-actions select{max-width:none !important;flex:1 1 150px;min-height:44px;}
+    .topbar-actions button{min-height:44px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div>
+      <a class="menu-back" href="index.html">← 메뉴</a>
+      <h1>역사수업 룰렛</h1>
+      <div class="sub">여행바구니 · 어린이 역사체험</div>
+    </div>
+    <div class="topbar-actions">
+      <select id="presetSelect"></select>
+      <button id="editBtn" class="icon-btn">항목 편집</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="wheel-shell">
+      <div class="wheel-frame"></div>
+      <div class="pointer"></div>
+      <div class="wheel-rotor" id="wheelRotor">
+        <canvas id="wheelCanvas" width="1000" height="1000"></canvas>
+      </div>
+      <button id="hubBtn" class="hub-btn">돌리기</button>
+    </div>
+    <div class="controls-row">
+      <label class="toggle"><input type="checkbox" id="removeToggle"> 뽑힌 항목 제거</label>
+      <button id="resetBtn" class="ghost-btn">초기화</button>
+      <span id="countInfo" class="count-info"></span>
+    </div>
+  </main>
+</div>
+
+<div id="editOverlay" class="overlay hidden">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>항목 편집</h2>
+      <button id="closeEdit" class="icon-btn">닫기</button>
+    </div>
+    <label class="field-label">항목 개수</label>
+    <div class="stepper-row">
+      <button id="countDecBtn" class="step-btn">−</button>
+      <span id="countDisplay" class="count-display">4</span>
+      <button id="countIncBtn" class="step-btn">+</button>
+    </div>
+
+    <label class="field-label">항목을 탭해서 내용을 바꾸세요</label>
+    <div class="slot-grid" id="slotGrid"></div>
+
+    <label class="field-label">다른 이름으로 저장 (선택)</label>
+    <input type="text" id="presetNameInput" placeholder="예: 보상뽑기">
+    <div class="panel-row">
+      <button id="saveAsBtn" class="ghost-btn">이 이름으로 저장</button>
+      <button id="deletePresetBtn" class="ghost-btn">이 목록 삭제</button>
+    </div>
+  </div>
+</div>
+
+<div id="slotEditOverlay" class="slot-edit-overlay hidden">
+  <div class="slot-edit-card">
+    <h3 id="slotEditTitle">항목 수정</h3>
+    <input type="text" id="slotEditInput">
+    <div class="panel-row">
+      <button id="slotEditCancel" class="ghost-btn">취소</button>
+      <button id="slotEditConfirm" class="cta-btn">확인</button>
+    </div>
+  </div>
+</div>
+
+<div id="resultOverlay" class="overlay hidden">
+  <div class="result-card">
+    <p class="result-eyebrow">당첨</p>
+    <p class="result-text" id="resultText">-</p>
+    <button id="closeResult" class="cta-btn">확인</button>
+  </div>
+</div>
+<div id="confettiLayer" class="confetti-layer"></div>
+
+<script>
+(function(){
+  // ---------- 기본 데이터 (세션 중에만 유지, 새로고침 시 초기화됩니다) ----------
+  var presets = {
+    "모둠뽑기": { items:["모둠 1","모둠 2","모둠 3","모둠 4"], removeOnPick:false, removed:[] },
+    "보상뽑기": { items:["칭찬 스티커","연필 한 자루","박수 받기","다음 기회에"], removeOnPick:false, removed:[] },
+    "아이스브레이킹": { items:["박수 3번 치기","옆 친구와 하이파이브","제자리서 한 바퀴 돌기","선생님 흉내내기"], removeOnPick:false, removed:[] },
+    "퀴즈 정답": { items:["1번","2번","3번","4번"], removeOnPick:false, removed:[] }
+  };
+  var currentName = "모둠뽑기";
+
+  var COLORS = ["#1F5C8B","#C1362E","#E3A72E","#3E7A5D"];
+  var TEXT_ON = { "#1F5C8B":"#FBF8F0","#C1362E":"#FBF8F0","#E3A72E":"#262220","#3E7A5D":"#FBF8F0" };
+
+  var canvas = document.getElementById('wheelCanvas');
+  var ctx = canvas.getContext('2d');
+  var rotor = document.getElementById('wheelRotor');
+  var hubBtn = document.getElementById('hubBtn');
+  var presetSelect = document.getElementById('presetSelect');
+  var removeToggle = document.getElementById('removeToggle');
+  var resetBtn = document.getElementById('resetBtn');
+  var countInfo = document.getElementById('countInfo');
+
+  var editOverlay = document.getElementById('editOverlay');
+  var presetNameInput = document.getElementById('presetNameInput');
+  var countDisplay = document.getElementById('countDisplay');
+  var slotGrid = document.getElementById('slotGrid');
+  var slotEditOverlay = document.getElementById('slotEditOverlay');
+  var slotEditTitle = document.getElementById('slotEditTitle');
+  var slotEditInput = document.getElementById('slotEditInput');
+  var editingSlotIndex = -1;
+
+  var resultOverlay = document.getElementById('resultOverlay');
+  var resultText = document.getElementById('resultText');
+  var confettiLayer = document.getElementById('confettiLayer');
+
+  var totalRotation = 0;
+  var spinning = false;
+
+  function getRemaining(p){
+    return p.items.filter(function(it){ return p.removed.indexOf(it) === -1; });
+  }
+
+  function refreshPresetSelect(){
+    presetSelect.innerHTML = '';
+    Object.keys(presets).forEach(function(name){
+      var opt = document.createElement('option');
+      opt.value = name; opt.textContent = name;
+      if(name === currentName) opt.selected = true;
+      presetSelect.appendChild(opt);
+    });
+  }
+
+  function drawWheel(items){
+    var size = canvas.width;
+    var cx = size/2, cy = size/2, r = size/2 - 6;
+    ctx.clearRect(0,0,size,size);
+    var n = items.length;
+    if(n === 0){
+      ctx.fillStyle = '#FBF8F0';
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#6b6259';
+      ctx.font = '700 34px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline='middle';
+      ctx.fillText('항목을 추가해 주세요', cx, cy);
+      return;
+    }
+    var segAngle = (Math.PI*2)/n;
+    var fontSize = Math.max(20, Math.min(44, (360/n) * 1.1));
+    for(var i=0;i<n;i++){
+      var start = -Math.PI/2 + i*segAngle;
+      var end = start + segAngle;
+      var color = COLORS[i % COLORS.length];
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r,start,end);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#FBF8F0';
+      ctx.stroke();
+
+      // 텍스트
+      var mid = start + segAngle/2;
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.rotate(mid);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = TEXT_ON[color] || '#262220';
+      ctx.font = '800 ' + fontSize + 'px "Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+      var label = items[i];
+      var maxLen = Math.max(4, Math.floor(n <= 6 ? 10 : 6));
+      if(label.length > maxLen) label = label.slice(0, maxLen-1) + '…';
+      ctx.fillText(label, r - 22, 0);
+      ctx.restore();
+    }
+    // 중심 원 (허브 버튼 배경과 겹치는 부분 정리용)
+    ctx.beginPath();
+    ctx.arc(cx,cy, size*0.02, 0, Math.PI*2);
+    ctx.fillStyle = '#FBF8F0';
+    ctx.fill();
+  }
+
+  function render(){
+    var p = presets[currentName];
+    var remaining = getRemaining(p);
+    drawWheel(remaining);
+    removeToggle.checked = !!p.removeOnPick;
+    countInfo.textContent = remaining.length + ' / ' + p.items.length + ' 남음';
+    hubBtn.disabled = remaining.length === 0;
+  }
+
+  refreshPresetSelect();
+  render();
+
+  presetSelect.addEventListener('change', function(){
+    currentName = presetSelect.value;
+    render();
+  });
+
+  removeToggle.addEventListener('change', function(){
+    presets[currentName].removeOnPick = removeToggle.checked;
+  });
+
+  resetBtn.addEventListener('click', function(){
+    presets[currentName].removed = [];
+    render();
+  });
+
+  // ---------- 편집 패널 (개수 스테퍼 + 항목 탭해서 수정) ----------
+  var MIN_ITEMS = 2, MAX_ITEMS = 12;
+
+  function renderEditPanel(){
+    var items = presets[currentName].items;
+    countDisplay.textContent = items.length;
+    slotGrid.innerHTML = '';
+    items.forEach(function(text, idx){
+      var el = document.createElement('div');
+      el.className = 'slot-pill';
+      el.innerHTML = '<span class="slot-num">'+(idx+1)+'번</span><span class="slot-val"></span>';
+      el.querySelector('.slot-val').textContent = text;
+      el.addEventListener('click', function(){ openSlotEdit(idx); });
+      slotGrid.appendChild(el);
+    });
+    presetNameInput.value = '';
+  }
+
+  function openSlotEdit(idx){
+    editingSlotIndex = idx;
+    slotEditTitle.textContent = (idx+1) + '번 항목 수정';
+    slotEditInput.value = presets[currentName].items[idx];
+    slotEditOverlay.classList.remove('hidden');
+    setTimeout(function(){ slotEditInput.focus(); slotEditInput.select(); }, 50);
+  }
+
+  function commitSlotEdit(){
+    var val = slotEditInput.value.trim();
+    if(val){
+      presets[currentName].items[editingSlotIndex] = val;
+    }
+    slotEditOverlay.classList.add('hidden');
+    renderEditPanel();
+    render();
+  }
+  document.getElementById('slotEditConfirm').addEventListener('click', commitSlotEdit);
+  document.getElementById('slotEditCancel').addEventListener('click', function(){
+    slotEditOverlay.classList.add('hidden');
+  });
+  slotEditInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') commitSlotEdit();
+  });
+
+  function nextItemLabel(items){
+    var n = items.length;
+    if(n > 0){
+      var m = items[n-1].match(/^(.*?)(\d+)$/);
+      if(m) return m[1] + (parseInt(m[2],10)+1);
+    }
+    return '항목 ' + (n+1);
+  }
+
+  document.getElementById('countIncBtn').addEventListener('click', function(){
+    var items = presets[currentName].items;
+    if(items.length >= MAX_ITEMS) return;
+    items.push(nextItemLabel(items));
+    presets[currentName].removed = [];
+    renderEditPanel();
+    render();
+  });
+  document.getElementById('countDecBtn').addEventListener('click', function(){
+    var items = presets[currentName].items;
+    if(items.length <= MIN_ITEMS) return;
+    items.pop();
+    presets[currentName].removed = [];
+    renderEditPanel();
+    render();
+  });
+
+  document.getElementById('editBtn').addEventListener('click', function(){
+    renderEditPanel();
+    editOverlay.classList.remove('hidden');
+  });
+  document.getElementById('closeEdit').addEventListener('click', function(){
+    editOverlay.classList.add('hidden');
+  });
+  document.getElementById('saveAsBtn').addEventListener('click', function(){
+    var name = presetNameInput.value.trim();
+    if(!name){
+      alert('저장할 이름을 입력해 주세요.');
+      return;
+    }
+    presets[name] = {
+      items: presets[currentName].items.slice(),
+      removeOnPick: presets[currentName].removeOnPick,
+      removed: []
+    };
+    currentName = name;
+    refreshPresetSelect();
+    renderEditPanel();
+    render();
+  });
+  document.getElementById('deletePresetBtn').addEventListener('click', function(){
+    var names = Object.keys(presets);
+    if(names.length <= 1){
+      alert('마지막 남은 목록은 삭제할 수 없습니다.');
+      return;
+    }
+    delete presets[currentName];
+    currentName = Object.keys(presets)[0];
+    refreshPresetSelect();
+    render();
+    editOverlay.classList.add('hidden');
+  });
+
+  // ---------- 회전 로직 ----------
+  function spin(){
+    if(spinning) return;
+    var p = presets[currentName];
+    var remaining = getRemaining(p);
+    if(remaining.length === 0) return;
+    spinning = true;
+    hubBtn.disabled = true;
+
+    var n = remaining.length;
+    var targetIndex = Math.floor(Math.random() * n);
+    var segAngleDeg = 360 / n;
+    var rBase = (-(targetIndex + 0.5) * segAngleDeg) % 360;
+    if(rBase < 0) rBase += 360;
+
+    var spins = 5 + Math.floor(Math.random()*2); // 5~6바퀴
+    var currentMod = ((totalRotation % 360) + 360) % 360;
+    var delta = rBase - currentMod;
+    if(delta <= 0) delta += 360;
+    var newRotation = totalRotation + spins*360 + delta;
+
+    var duration = 3.6 + Math.random()*0.8;
+    rotor.style.transition = 'transform ' + duration.toFixed(2) + 's cubic-bezier(0.12,0.67,0.16,1)';
+    rotor.style.transform = 'rotate(' + newRotation + 'deg)';
+    totalRotation = newRotation;
+
+    setTimeout(function(){
+      spinning = false;
+      var winner = remaining[targetIndex];
+      if(p.removeOnPick){
+        p.removed.push(winner);
+      }
+      showResult(winner);
+    }, duration*1000 + 80);
+  }
+
+  hubBtn.addEventListener('click', spin);
+
+  function showResult(text){
+    resultText.textContent = text;
+    resultOverlay.classList.remove('hidden');
+    launchConfetti();
+  }
+  document.getElementById('closeResult').addEventListener('click', function(){
+    resultOverlay.classList.add('hidden');
+    render();
+  });
+
+  function launchConfetti(){
+    var colors = COLORS.concat(['#CB6A2F']);
+    for(var i=0;i<26;i++){
+      var el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = (Math.random()*100) + 'vw';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      var dur = 1.6 + Math.random()*1.2;
+      el.style.animationDuration = dur + 's';
+      el.style.animationDelay = (Math.random()*0.3) + 's';
+      confettiLayer.appendChild(el);
+      (function(node, d){
+        setTimeout(function(){ node.remove(); }, (d+0.5)*1000);
+      })(el, dur);
+    }
+  }
+})();
+</script>
+</body>
+</html>

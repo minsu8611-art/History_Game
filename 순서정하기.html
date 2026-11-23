@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>역사수업 순서정하기</title>
+<style>
+  :root{
+    --bg:#F7F1E1;
+    --paper:#FBF8F0;
+    --ink:#262220;
+    --ink-soft:#6b6259;
+    --blue:#1F5C8B;
+    --red:#C1362E;
+    --yellow:#E3A72E;
+    --green:#3E7A5D;
+    --cta:#CB6A2F;
+    --line: rgba(38,34,32,0.16);
+    --line-soft: rgba(38,34,32,0.22);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    -webkit-user-select:none;user-select:none;
+    touch-action:manipulation;
+    overflow:hidden;
+  }
+  .app{ height:100%; display:flex; flex-direction:column; }
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;border-bottom:1px solid var(--line);
+    background:var(--paper); flex-shrink:0;
+  }
+  .topbar h1{ font-size:19px;margin:0;font-weight:800;letter-spacing:-0.2px; }
+  .topbar .sub{ font-size:12px;color:var(--ink-soft);font-weight:500;margin-top:2px; }
+  .topbar-actions{ display:flex;gap:8px;align-items:center; }
+  button{ font-family:inherit;cursor:pointer;border:none; }
+  .icon-btn{
+    font-size:14px;font-weight:700;padding:9px 14px;border-radius:10px;
+    background:var(--paper);border:1.5px solid var(--ink);color:var(--ink);
+  }
+  .icon-btn:active{ transform:scale(0.96); }
+  .ghost-btn{
+    font-size:14px;font-weight:700;padding:9px 16px;border-radius:10px;
+    background:transparent;border:1.5px solid var(--line-soft);color:var(--ink-soft);
+  }
+  .cta-btn{
+    font-size:16px;font-weight:800;padding:12px 20px;border-radius:12px;
+    background:var(--cta);color:var(--paper);
+  }
+  .cta-btn:active{ transform:scale(0.97); }
+
+  .stage{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;padding:16px;min-height:0;width:100%;
+  }
+  .cards-scroll{
+    width:100%;max-width:900px;flex:1;min-height:0;overflow-y:auto;
+    display:flex;align-items:center;
+  }
+  .cards-grid{
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:14px;
+  }
+  .card{
+    perspective:1000px;
+    height:130px;
+  }
+  .card-inner{
+    position:relative;width:100%;height:100%;
+    transform-style:preserve-3d;
+    transition:transform 0.6s cubic-bezier(0.2,0.8,0.2,1);
+    border-radius:14px;
+    box-shadow:0 6px 16px rgba(38,34,32,0.16);
+  }
+  .card.flipped .card-inner{ transform:rotateY(180deg); }
+  .card-face{
+    position:absolute;inset:0;
+    border-radius:14px;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:6px;padding:8px;
+    text-align:center;
+  }
+  .card-front{
+    background:var(--blue);color:var(--paper);
+  }
+  .card-front .q-mark{ font-size:30px;font-weight:900;opacity:0.85; }
+  .card-front .name{
+    font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+  }
+  .card-back{
+    background:var(--paper);border:2px solid var(--cta);
+    transform:rotateY(180deg);
+  }
+  .card-back .order-num{ font-size:34px;font-weight:900;color:var(--cta); line-height:1; }
+  .card-back .name{
+    font-size:13px;font-weight:700;color:var(--ink-soft);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+  }
+  .card:active .card-inner{ transform:scale(0.96) rotateY(0deg); }
+  .card.flipped:active .card-inner{ transform:scale(0.96) rotateY(180deg); }
+
+  .controls-row{ display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;flex-shrink:0; }
+  .hint{ font-size:12px;color:var(--ink-soft);font-weight:600; }
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(38,34,32,0.55);
+    display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .overlay.hidden{ display:none; }
+  .panel{
+    background:var(--paper);border-radius:18px;padding:20px;
+    width:min(92vw,480px);max-height:88vh;overflow:auto;
+    box-shadow:0 20px 50px rgba(0,0,0,0.3);
+  }
+  .panel-head{ display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
+  .panel-head h2{ margin:0;font-size:18px;font-weight:800; }
+  .panel .field-label{ display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin:12px 0 6px; }
+  .panel-row{ display:flex;gap:8px;margin-top:14px; }
+  .panel-row .cta-btn, .panel-row .ghost-btn{ flex:1; }
+
+  .stepper-row{ display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0 14px; }
+  .step-btn{
+    width:46px;height:46px;border-radius:12px;background:var(--paper);
+    border:1.5px solid var(--ink);font-size:22px;font-weight:800;color:var(--ink);line-height:1;
+  }
+  .step-btn:active{ transform:scale(0.93); }
+  .count-display{ font-size:22px;font-weight:900;min-width:70px;text-align:center; }
+
+  .slot-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+    gap:10px;margin-bottom:6px;
+  }
+  .slot-pill{
+    padding:10px 10px;border-radius:10px;
+    background:var(--bg);border:1.5px solid var(--line);
+    text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .slot-pill:active{ transform:scale(0.96);background:#F0E9D6; }
+  .slot-pill .slot-num{ display:block;font-size:11px;font-weight:700;color:var(--ink-soft);margin-bottom:2px; }
+  .slot-pill .slot-val{ display:block;font-size:14px;font-weight:800; }
+
+  .slot-edit-overlay{
+    position:fixed;inset:0;background:rgba(38,34,32,0.6);
+    display:flex;align-items:center;justify-content:center;z-index:80;padding:20px;
+  }
+  .slot-edit-overlay.hidden{ display:none; }
+  .slot-edit-card{ background:var(--paper);border-radius:16px;padding:20px;width:min(88vw,360px); }
+  .slot-edit-card h3{ margin:0 0 12px;font-size:16px;font-weight:800; }
+  #slotEditInput{
+    width:100%;font-size:18px;padding:12px;border-radius:10px;
+    border:1.5px solid var(--line-soft);font-family:inherit;margin-bottom:14px;
+  }
+
+  .result-card{
+    background:var(--paper);border-radius:20px;padding:30px 26px;
+    width:min(90vw,420px);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.35);
+    animation:popIn 0.35s cubic-bezier(0.2,0.8,0.2,1);
+    max-height:80vh;overflow:auto;
+  }
+  @keyframes popIn{ from{transform:scale(0.7);opacity:0;} to{transform:scale(1);opacity:1;} }
+  .result-eyebrow{ margin:0 0 10px;font-size:13px;font-weight:800;letter-spacing:2px;color:var(--cta); }
+  .result-list{ text-align:left;font-size:16px;font-weight:700;line-height:2;margin:0 0 20px;padding:0; }
+  .result-list li{ list-style:none; }
+  .confetti-layer{ position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:49; }
+  .confetti-piece{
+    position:absolute;top:-20px;width:10px;height:16px;opacity:0.9;
+    animation-name:fall;animation-timing-function:linear;animation-fill-mode:forwards;
+  }
+  @keyframes fall{ to{ transform:translateY(110vh) rotate(540deg); opacity:0.2; } }
+  .menu-back{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;margin-bottom:6px;border-radius:10px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-size:13px;font-weight:800;}
+  @media(max-width:640px){
+    .topbar{flex-wrap:wrap;gap:8px;padding:10px 12px;}
+    .topbar>div:first-child{flex:1 1 100%;}
+    .topbar h1{white-space:nowrap;}
+    .topbar-actions{flex:1 1 100%;flex-wrap:wrap;justify-content:flex-start;}
+    .topbar-actions select{max-width:none !important;flex:1 1 150px;min-height:44px;}
+    .topbar-actions button{min-height:44px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div>
+      <a class="menu-back" href="index.html">← 메뉴</a>
+      <h1>역사수업 순서정하기</h1>
+      <div class="sub">여행바구니 · 어린이 역사체험</div>
+    </div>
+    <div class="topbar-actions">
+      <button id="reshuffleBtn" class="icon-btn">다시 섞기</button>
+      <button id="editBtn" class="icon-btn">항목 편집</button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="cards-scroll">
+      <div class="cards-grid" id="cardsGrid"></div>
+    </div>
+    <div class="hint">카드를 탭하면 순번이 나와요</div>
+    <div class="controls-row">
+      <button id="revealAllBtn" class="ghost-btn">전체 공개</button>
+    </div>
+  </main>
+</div>
+
+<div id="editOverlay" class="overlay hidden">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>항목 편집</h2>
+      <button id="closeEdit" class="icon-btn">닫기</button>
+    </div>
+    <label class="field-label">인원 수</label>
+    <div class="stepper-row">
+      <button id="countDecBtn" class="step-btn">−</button>
+      <span id="countDisplay" class="count-display">4</span>
+      <button id="countIncBtn" class="step-btn">+</button>
+    </div>
+    <label class="field-label">이름을 탭해서 내용을 바꾸세요</label>
+    <div class="slot-grid" id="slotGrid"></div>
+  </div>
+</div>
+
+<div id="slotEditOverlay" class="slot-edit-overlay hidden">
+  <div class="slot-edit-card">
+    <h3 id="slotEditTitle">항목 수정</h3>
+    <input type="text" id="slotEditInput">
+    <div class="panel-row">
+      <button id="slotEditCancel" class="ghost-btn">취소</button>
+      <button id="slotEditConfirm" class="cta-btn">확인</button>
+    </div>
+  </div>
+</div>
+
+<div id="resultOverlay" class="overlay hidden">
+  <div class="result-card" id="resultCard"></div>
+</div>
+<div id="confettiLayer" class="confetti-layer"></div>
+
+<script>
+(function(){
+  var COLORS = ["#1F5C8B","#C1362E","#E3A72E","#3E7A5D","#7B3F6B","#2E7DA3"];
+  var MIN_N = 2, MAX_N = 16;
+
+  var names = ["학생 1","학생 2","학생 3","학생 4"];
+  var assignment = []; // idx -> order number (1..n)
+  var revealed = [];
+
+  var cardsGrid = document.getElementById('cardsGrid');
+  var editOverlay = document.getElementById('editOverlay');
+  var countDisplay = document.getElementById('countDisplay');
+  var slotGrid = document.getElementById('slotGrid');
+  var slotEditOverlay = document.getElementById('slotEditOverlay');
+  var slotEditTitle = document.getElementById('slotEditTitle');
+  var slotEditInput = document.getElementById('slotEditInput');
+  var editingIdx = -1;
+  var resultOverlay = document.getElementById('resultOverlay');
+  var resultCard = document.getElementById('resultCard');
+  var confettiLayer = document.getElementById('confettiLayer');
+
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function shuffleAssignment(){
+    var n = names.length;
+    var arr = [];
+    for(var i=1;i<=n;i++) arr.push(i);
+    for(var i=arr.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t = arr[i]; arr[i]=arr[j]; arr[j]=t;
+    }
+    assignment = arr;
+    revealed = new Array(n).fill(false);
+  }
+
+  function renderCards(){
+    cardsGrid.innerHTML = '';
+    names.forEach(function(name, idx){
+      var card = document.createElement('div');
+      card.className = 'card' + (revealed[idx] ? ' flipped' : '');
+      var color = COLORS[idx % COLORS.length];
+      card.innerHTML =
+        '<div class="card-inner">' +
+          '<div class="card-face card-front" style="background:'+color+';">' +
+            '<div class="q-mark">?</div>' +
+            '<div class="name">'+escapeHtml(name)+'</div>' +
+          '</div>' +
+          '<div class="card-face card-back">' +
+            '<div class="order-num">'+assignment[idx]+'</div>' +
+            '<div class="name">'+escapeHtml(name)+'</div>' +
+          '</div>' +
+        '</div>';
+      card.addEventListener('click', function(){ onTapCard(idx); });
+      cardsGrid.appendChild(card);
+    });
+  }
+
+  function onTapCard(idx){
+    if(revealed[idx]) return;
+    revealed[idx] = true;
+    renderCards();
+  }
+
+  function buildRound(){
+    shuffleAssignment();
+    renderCards();
+  }
+
+  document.getElementById('reshuffleBtn').addEventListener('click', buildRound);
+
+  document.getElementById('revealAllBtn').addEventListener('click', function(){
+    for(var i=0;i<names.length;i++) revealed[i] = true;
+    renderCards();
+
+    var order = names.map(function(name, idx){ return { name:name, num:assignment[idx] }; });
+    order.sort(function(a,b){ return a.num - b.num; });
+    var lines = order.map(function(o){ return '<li>'+o.num+'번째 · '+escapeHtml(o.name)+'</li>'; });
+    resultCard.innerHTML =
+      '<p class="result-eyebrow">전체 순서</p>' +
+      '<ul class="result-list">'+lines.join('')+'</ul>' +
+      '<button id="closeResult" class="cta-btn">확인</button>';
+    resultOverlay.classList.remove('hidden');
+    launchConfetti();
+    document.getElementById('closeResult').addEventListener('click', function(){
+      resultOverlay.classList.add('hidden');
+    });
+  });
+
+  // ---------- 편집 패널 ----------
+  function renderEditPanel(){
+    countDisplay.textContent = names.length;
+    slotGrid.innerHTML = '';
+    names.forEach(function(text, idx){
+      var el = document.createElement('div');
+      el.className = 'slot-pill';
+      el.innerHTML = '<span class="slot-num">'+(idx+1)+'번</span><span class="slot-val"></span>';
+      el.querySelector('.slot-val').textContent = text;
+      el.addEventListener('click', function(){ openSlotEdit(idx); });
+      slotGrid.appendChild(el);
+    });
+  }
+
+  function openSlotEdit(idx){
+    editingIdx = idx;
+    slotEditTitle.textContent = (idx+1) + '번 이름 수정';
+    slotEditInput.value = names[idx];
+    slotEditOverlay.classList.remove('hidden');
+    setTimeout(function(){ slotEditInput.focus(); slotEditInput.select(); }, 50);
+  }
+
+  function commitSlotEdit(){
+    var val = slotEditInput.value.trim();
+    if(val) names[editingIdx] = val;
+    slotEditOverlay.classList.add('hidden');
+    renderEditPanel();
+    buildRound();
+  }
+  document.getElementById('slotEditConfirm').addEventListener('click', commitSlotEdit);
+  document.getElementById('slotEditCancel').addEventListener('click', function(){
+    slotEditOverlay.classList.add('hidden');
+  });
+  slotEditInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') commitSlotEdit();
+  });
+
+  function nextItemLabel(items){
+    var n = items.length;
+    if(n > 0){
+      var m = items[n-1].match(/^(.*?)(\d+)$/);
+      if(m) return m[1] + (parseInt(m[2],10)+1);
+    }
+    return '학생 ' + (n+1);
+  }
+
+  document.getElementById('countIncBtn').addEventListener('click', function(){
+    if(names.length >= MAX_N) return;
+    names.push(nextItemLabel(names));
+    renderEditPanel();
+    buildRound();
+  });
+  document.getElementById('countDecBtn').addEventListener('click', function(){
+    if(names.length <= MIN_N) return;
+    names.pop();
+    renderEditPanel();
+    buildRound();
+  });
+
+  document.getElementById('editBtn').addEventListener('click', function(){
+    renderEditPanel();
+    editOverlay.classList.remove('hidden');
+  });
+  document.getElementById('closeEdit').addEventListener('click', function(){
+    editOverlay.classList.add('hidden');
+  });
+
+  function launchConfetti(){
+    var colors = COLORS.concat(['#CB6A2F']);
+    for(var i=0;i<26;i++){
+      var el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = (Math.random()*100) + 'vw';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      var dur = 1.6 + Math.random()*1.2;
+      el.style.animationDuration = dur + 's';
+      el.style.animationDelay = (Math.random()*0.3) + 's';
+      confettiLayer.appendChild(el);
+      (function(node, d){ setTimeout(function(){ node.remove(); }, (d+0.5)*1000); })(el, dur);
+    }
+  }
+
+  buildRound();
+})();
+</script>
+</body>
+</html>

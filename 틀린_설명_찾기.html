@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>틀린 설명 찾기</title>
+<style>
+:root{
+  --bg:#F7F1E1;--paper:#FBF8F0;--ink:#262220;--ink-soft:#6b6259;
+  --blue:#1F5C8B;--red:#C1362E;--yellow:#E3A72E;--green:#3E7A5D;--cta:#CB6A2F;--purple:#7B3F6B;--teal:#2E7DA3;
+  --line:rgba(38,34,32,0.16);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.topbar a.back{min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:800;font-size:14px;padding:0 12px;}
+.topbar .ttl{font-size:20px;font-weight:900;letter-spacing:-0.3px;}
+.topbar .sub{font-size:12px;color:var(--ink-soft);font-weight:600;margin-left:auto;text-align:right;}
+.topbar a.back{white-space:nowrap;flex:none;}
+.topbar .ttl{white-space:nowrap;}
+@media(max-width:560px){.topbar{padding:10px 12px;gap:10px;}.topbar .sub{display:none;}.topbar .ttl{font-size:18px;}.app{padding:12px 12px 32px;}}
+.app{max-width:1000px;margin:0 auto;padding:16px 16px 40px;}
+button{font-family:inherit;cursor:pointer;border:0;}
+.btn{min-height:52px;padding:0 22px;border-radius:14px;font-size:17px;font-weight:800;color:#fff;background:var(--cta);box-shadow:0 4px 0 rgba(0,0,0,0.18);}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.18);}
+.btn.blue{background:var(--blue);} .btn.red{background:var(--red);} .btn.green{background:var(--green);}
+.btn.purple{background:var(--purple);} .btn.teal{background:var(--teal);}
+.btn.yellow{background:var(--yellow);color:var(--ink);}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line);box-shadow:none;}
+.btn.small{min-height:44px;font-size:15px;padding:0 14px;}
+.btn[disabled]{opacity:.4;pointer-events:none;}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.center{text-align:center;}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;}
+select.sel{min-height:48px;font-size:16px;font-weight:700;border-radius:12px;border:1px solid var(--line);background:var(--paper);padding:0 12px;color:var(--ink);font-family:inherit;}
+.stepper{display:inline-flex;align-items:center;gap:6px;}
+.stepper button{width:48px;height:48px;border-radius:12px;background:var(--paper);border:1px solid var(--line);font-size:24px;font-weight:900;color:var(--ink);}
+.stepper .val{min-width:44px;text-align:center;font-size:22px;font-weight:900;}
+.hint{font-size:13px;color:var(--ink-soft);font-weight:600;}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(38,34,32,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.ov.on{display:flex;}
+.modal{background:var(--paper);border-radius:22px;padding:22px;max-width:520px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.35);}
+.modal h2{margin:0 0 12px;font-size:22px;font-weight:900;}
+.modal .big{font-size:56px;text-align:center;line-height:1.1;margin:6px 0;}
+.modal .msg{font-size:18px;font-weight:700;text-align:center;line-height:1.5;margin:6px 0 16px;}
+.modal .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:200;}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:800;background:var(--bg);border:1px solid var(--line);}
+
+
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;}
+.prog{font-size:16px;font-weight:900;}
+.bar{flex:1;min-width:120px;height:14px;border-radius:99px;background:rgba(38,34,32,.12);overflow:hidden;}
+.bar i{display:block;height:100%;background:var(--red);width:0;transition:width .3s;}
+.qbox{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:18px;text-align:center;}
+.ttl{font-size:clamp(34px,9vw,64px);font-weight:900;}
+.ask{font-size:clamp(18px,3.6vw,26px);font-weight:800;color:var(--red);margin-top:6px;}
+.opts{display:grid;gap:12px;margin-top:14px;}
+.opt{min-height:84px;border-radius:18px;background:var(--paper);border:3px solid var(--line);font-size:clamp(18px,3.6vw,28px);font-weight:800;color:var(--ink);padding:10px 16px;text-align:left;line-height:1.4;word-break:keep-all;box-shadow:0 4px 0 rgba(0,0,0,.12);}
+.opt b{display:inline-block;width:38px;height:38px;border-radius:50%;background:var(--blue);color:#fff;text-align:center;line-height:38px;margin-right:10px;}
+.opt.wrong{background:#F5D6D3;border-color:var(--red);}
+.opt.right{background:#D6EBDD;border-color:var(--green);}
+.opt.mark{outline:5px solid var(--yellow);}
+.nxt{margin-top:16px;text-align:center;min-height:60px;}
+
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← 메뉴</a><div class="ttl">틀린 설명 찾기</div><div class="sub">여행바구니 · 어린이 역사체험</div></div>
+<div class="app">
+
+<div class="top"><span class="prog" id="prog"></span><div class="bar"><i id="bar"></i></div><span class="pill" id="sc">⭐ 0</span></div>
+<div class="qbox"><div class="ttl" id="ttl"></div><div class="ask">❌ 틀린 설명은 어느 것일까요?</div></div>
+<div class="opts" id="opts"></div>
+<div class="nxt"><button class="btn" id="nx" style="display:none;min-width:200px;min-height:60px;font-size:22px">다음 ▶</button></div>
+
+</div>
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+<canvas id="confetti"></canvas>
+<script>
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+/* 셔플백: 문제 은행이 다 소진될 때까지 중복 없이 n개씩 뽑는다 */
+function makeBag(){return {pool:[]};}
+function takeRound(bag,all,n){
+  n=Math.min(n,all.length);
+  const out=[];
+  while(out.length<n){
+    if(bag.pool.length===0){
+      let fresh=shuffle(all.map((_,i)=>i));
+      // 직전 라운드와 연속 중복 방지
+      fresh=fresh.filter(i=>!out.includes(i)).concat(fresh.filter(i=>out.includes(i)));
+      bag.pool=fresh;
+    }
+    const i=bag.pool.shift();
+    if(!out.includes(i))out.push(i);
+  }
+  return out.map(i=>all[i]);
+}
+/* 소리 */
+let _ac=null;
+function beep(f,d,type){
+  try{
+    _ac=_ac||new (window.AudioContext||window.webkitAudioContext)();
+    const o=_ac.createOscillator(),g=_ac.createGain();
+    o.type=type||'sine';o.frequency.value=f;g.gain.value=0.12;
+    o.connect(g);g.connect(_ac.destination);o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001,_ac.currentTime+(d||0.15));
+    o.stop(_ac.currentTime+(d||0.15)+0.02);
+  }catch(e){}
+}
+function sndOk(){beep(660,.12);setTimeout(()=>beep(880,.18),110);}
+function sndNo(){beep(220,.25,'square');}
+function sndTick(){beep(520,.06);}
+function sndAlarm(){let k=0;const t=setInterval(()=>{beep(k%2?880:660,.22,'triangle');if(++k>=6)clearInterval(t);},260);}
+/* 폭죽 */
+function confetti(){
+  let cv=$('#confetti');if(!cv)return;
+  const ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return;
+  cv.width=innerWidth;cv.height=innerHeight;
+  const cols=['#1F5C8B','#C1362E','#E3A72E','#3E7A5D','#CB6A2F','#7B3F6B','#2E7DA3'];
+  const ps=Array.from({length:90},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.4,
+    vx:(Math.random()-.5)*4,vy:2+Math.random()*4,s:6+Math.random()*8,c:pick(cols),r:Math.random()*6}));
+  let f=0;
+  (function step(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.2;ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);ctx.restore();});
+    if(++f<110)requestAnimationFrame(step);else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+/* 모달: body는 HTML, buttons=[{t,cls,fn}] */
+function modal(o){
+  const ov=$('#ov'),m=$('#modal');
+  m.innerHTML=(o.title?'<h2>'+esc(o.title)+'</h2>':'')+(o.icon?'<div class="big">'+o.icon+'</div>':'')+
+    (o.msg?'<div class="msg">'+o.msg+'</div>':'')+(o.html||'')+'<div class="acts" id="macts"></div>';
+  const acts=$('#macts');
+  (o.buttons||[{t:'확인'}]).forEach(b=>{
+    const el=document.createElement('button');el.className='btn '+(b.cls||'');el.textContent=b.t;
+    el.onclick=()=>{ if(b.keep!==true)closeModal(); if(b.fn)b.fn(); };
+    acts.appendChild(el);
+  });
+  ov.classList.add('on');
+}
+function closeModal(){$('#ov').classList.remove('on');}
+
+const Q=[["세종대왕", ["한글(훈민정음)을 만들었어요.", "조선의 임금이에요.", "집현전 학자들과 함께 연구했어요."], "임진왜란 때 거북선을 앞세워 싸웠어요."], ["이순신", ["임진왜란 때 활약했어요.", "한산도 대첩에서 이겼어요.", "『난중일기』를 썼어요."], "고구려의 장군이에요."], ["광개토대왕", ["고구려의 왕이에요.", "고구려의 영토를 크게 넓혔어요.", "광개토대왕릉비가 남아 있어요."], "신라를 세웠어요."], ["장보고", ["완도에 청해진을 세웠어요.", "바다에서 무역을 이끌었어요.", "신라 사람이에요."], "고려를 세웠어요."], ["왕건", ["고려를 세웠어요.", "후삼국을 통일했어요.", "송악(개성) 출신이에요."], "한양에 도읍을 정했어요."], ["이성계", ["조선을 세웠어요.", "위화도에서 군대를 돌렸어요.", "한양을 도읍으로 정했어요."], "고구려의 장군이에요."], ["정약용", ["거중기를 설계했어요.", "『목민심서』를 썼어요.", "정조 때 활약했어요."], "『동의보감』을 썼어요."], ["허준", ["『동의보감』을 썼어요.", "임금님의 병을 돌보는 의관이었어요.", "그 책이 유네스코 세계기록유산에 올랐어요."], "「대동여지도」를 만들었어요."], ["김정호", ["「대동여지도」를 만들었어요.", "지리학자예요.", "지도를 목판에 새겨 여러 장 찍었어요."], "한글을 만들었어요."], ["유관순", ["3·1 운동에 참여했어요.", "천안 아우내 장터에서 만세 운동을 이끌었어요.", "서대문형무소에서 순국했어요."], "하얼빈에서 이토 히로부미를 처단했어요."], ["안중근", ["하얼빈에서 의거를 일으켰어요.", "이토 히로부미를 처단했어요.", "동지들과 단지동맹을 맺었어요."], "상하이 훙커우 공원에 폭탄을 던졌어요."], ["윤봉길", ["한인애국단에 들어갔어요.", "훙커우 공원에서 의거를 일으켰어요.", "호는 '매헌'이에요."], "청산리에서 일본군을 물리쳤어요."], ["김구", ["『백범일지』를 썼어요.", "대한민국 임시정부의 주석을 지냈어요.", "한인애국단을 만들었어요."], "조선을 세웠어요."], ["불국사", ["경주에 있어요.", "신라 시대의 절이에요.", "유네스코 세계유산이에요."], "서울 한복판에 있는 조선의 궁궐이에요."], ["경복궁", ["조선의 궁궐이에요.", "한양에 있어요.", "정문은 광화문이에요."], "신라의 수도에 있어요."], ["팔만대장경", ["고려 시대에 만들었어요.", "해인사에 보관되어 있어요.", "몽골의 침입 때 부처님의 힘을 빌려 이겨내려고 만들었어요."], "금속활자로 찍은 책이에요."], ["직지심체요절", ["고려 시대의 책이에요.", "금속활자로 찍었어요.", "현재 남아 있는 가장 오래된 금속활자 인쇄본이에요."], "세종대왕 때 만들어졌어요."], ["훈민정음", ["세종대왕이 만들었어요.", "백성이 쉽게 쓰도록 만든 글자예요.", "오늘날의 한글이에요."], "신라 시대에 만들어졌어요."], ["거북선", ["임진왜란 때 쓰였어요.", "이순신 장군이 앞장서 활용했어요.", "거북 모양을 한 배예요."], "고려 시대에 처음 쓰였어요."], ["고조선", ["단군왕검이 세웠어요.", "우리나라 최초의 나라예요.", "8조법이 있었어요."], "주몽이 세웠어요."], ["발해", ["대조영이 세웠어요.", "고구려 사람들이 중심이 되어 세웠어요.", "신라와 함께 남북국 시대를 이루었어요."], "신라가 멸망시켰어요."], ["신라", ["박혁거세가 세웠어요.", "경주가 수도였어요.", "삼국을 통일했어요."], "한양에 도읍을 두었어요."], ["독도", ["동해에 있는 섬이에요.", "우리나라 땅이에요.", "안용복이 지키려 한 섬이에요."], "서해에 있어요."], ["수원 화성", ["정조 때 쌓았어요.", "쌓을 때 거중기가 쓰였어요.", "유네스코 세계유산이에요."], "병자호란 때 인조가 피신한 성이에요."], ["3·1 운동", ["1919년에 일어났어요.", "온 국민이 만세를 외쳤어요.", "유관순이 참여했어요."], "1950년에 일어났어요."], ["임진왜란", ["일본이 쳐들어왔어요.", "이순신이 바다에서 활약했어요.", "1592년에 일어났어요."], "청나라가 쳐들어왔어요."]];
+const N=10;const bag=makeBag();let round=[],idx=0,score=0,locked=false;
+function start(){round=takeRound(bag,Q,N);idx=0;score=0;show();}
+function show(){
+  locked=false;const [t,ts,f]=round[idx];
+  $('#prog').textContent=(idx+1)+' / '+round.length;$('#bar').style.width=(idx/round.length*100)+'%';$('#sc').textContent='⭐ '+score;
+  $('#ttl').textContent=t;$('#nx').style.display='none';
+  const o=$('#opts');o.innerHTML='';
+  shuffle([...ts.map(x=>[x,0]),[f,1]]).forEach(([x,bad],i)=>{
+    const b=document.createElement('button');b.className='opt';b.innerHTML='<b>'+(i+1)+'</b>'+esc(x);b.dataset.bad=bad;
+    b.onclick=()=>pickOpt(b,bad);o.appendChild(b);
+  });
+}
+function pickOpt(b,bad){
+  if(locked)return;locked=true;
+  $$('.opt').forEach(x=>{x.disabled=true;if(x.dataset.bad==='1')x.classList.add('right');});
+  if(bad){score++;sndOk();$('#sc').textContent='⭐ '+score;}
+  else{b.classList.add('wrong');sndNo();}
+  $$('.opt').forEach(x=>{if(x.dataset.bad==='1')x.classList.add('mark');});
+  $('#nx').style.display='inline-block';$('#nx').textContent=idx+1>=round.length?'결과 보기 🎉':'다음 ▶';
+}
+$('#nx').onclick=()=>{if(idx+1>=round.length){finish();return;}idx++;show();};
+function finish(){
+  $('#bar').style.width='100%';const r=score/round.length;
+  const [ic,msg]=r===1?['🏆','만점! 날카로운 눈이에요!']:r>=.7?['😄','아주 잘했어요!']:r>=.4?['🙂','좋아요! 한 번 더 도전!']:['💪','괜찮아요, 다시 해봐요!'];
+  if(r>=.7)confetti();
+  modal({icon:ic,title:score+' / '+round.length,msg:msg,buttons:[{t:'다시 (새 문제)',cls:'red',fn:()=>start()},{t:'닫기',cls:'ghost'}]});
+}
+start();
+
+</script>
+</body>
+</html>

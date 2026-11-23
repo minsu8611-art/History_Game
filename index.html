@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>여행바구니 역사수업 도구 모음</title>
+<style>
+  :root{
+    --bg:#F7F1E1;
+    --paper:#FBF8F0;
+    --ink:#262220;
+    --ink-soft:#6b6259;
+    --blue:#1F5C8B;
+    --red:#C1362E;
+    --yellow:#E3A72E;
+    --green:#3E7A5D;
+    --cta:#CB6A2F;
+    --purple:#7B3F6B;
+    --teal:#2E7DA3;
+    --line: rgba(38,34,32,0.16);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;min-height:100%;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    -webkit-user-select:none;user-select:none;
+  }
+  .app{ max-width:900px;margin:0 auto;padding:24px 18px 40px; }
+  header{ text-align:center;margin-bottom:8px; }
+  header h1{ font-size:24px;font-weight:900;margin:0 0 6px;letter-spacing:-0.3px; }
+  header .sub{ font-size:13px;color:var(--ink-soft);font-weight:600; }
+
+  .section-title{
+    font-size:14px;font-weight:800;color:var(--ink-soft);
+    margin:28px 0 12px;padding-left:2px;
+  }
+  .card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(150px,1fr));
+    gap:14px;
+  }
+  a.card{
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;text-decoration:none;color:var(--paper);
+    border-radius:18px;
+    padding:22px 14px;
+    min-height:140px;
+    box-shadow:0 6px 16px rgba(38,34,32,0.16);
+    transition:transform 0.12s ease;
+  }
+  a.card:active{ transform:scale(0.95); }
+  .card .icon{ font-size:38px;margin-bottom:10px;line-height:1; }
+  .card .title{ font-size:15px;font-weight:800;line-height:1.3;margin-bottom:4px; }
+  .card .desc{ font-size:11.5px;font-weight:500;opacity:0.9;line-height:1.4; }
+
+  .c-blue{ background:var(--blue); }
+  .c-red{ background:var(--red); }
+  .c-yellow{ background:var(--yellow); color:var(--ink); }
+  .c-yellow .desc{ color:var(--ink); opacity:0.75; }
+  .c-green{ background:var(--green); }
+  .c-cta{ background:var(--cta); }
+  .c-purple{ background:var(--purple); }
+  .c-teal{ background:var(--teal); }
+
+  footer{
+    text-align:center;margin-top:36px;font-size:11.5px;color:var(--ink-soft);
+    line-height:1.6;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>여행바구니 역사수업 도구 모음</h1>
+    <div class="sub">원하는 도구를 탭해서 시작하세요</div>
+  </header>
+
+  <div class="section-title">뽑기 · 순서 정하기</div>
+  <div class="card-grid">
+    <a class="card c-blue" href="역사수업_룰렛.html">
+      <div class="icon">🎡</div>
+      <div class="title">룰렛</div>
+      <div class="desc">모둠뽑기·보상뽑기·아이스브레이킹</div>
+    </a>
+    <a class="card c-red" href="사다리타기.html">
+      <div class="icon">🪜</div>
+      <div class="title">사다리타기</div>
+      <div class="desc">1:1 순서·상품 배정</div>
+    </a>
+    <a class="card c-yellow" href="순서정하기.html">
+      <div class="icon">🎴</div>
+      <div class="title">순서정하기</div>
+      <div class="desc">카드 뒤집어 순번 뽑기</div>
+    </a>
+  </div>
+
+  <div class="section-title">수업 운영 도구</div>
+  <div class="card-grid">
+    <a class="card c-yellow" href="모둠_점수판.html">
+      <div class="icon">🏆</div>
+      <div class="title">모둠 점수판</div>
+      <div class="desc">2~6모둠 점수 · 우승 발표</div>
+    </a>
+    <a class="card c-blue" href="수업_타이머.html">
+      <div class="icon">⏱️</div>
+      <div class="title">수업 타이머</div>
+      <div class="desc">큰 카운트다운 · 종료 알림</div>
+    </a>
+    <a class="card c-green" href="칭찬_스티커판.html">
+      <div class="icon">🌟</div>
+      <div class="title">칭찬 스티커판</div>
+      <div class="desc">목표를 채우면 보상 뽑기</div>
+    </a>
+    <a class="card c-cta" href="수업_안내판.html">
+      <div class="icon">📋</div>
+      <div class="title">수업 안내판</div>
+      <div class="desc">오늘 수업 순서 · 지금 단계</div>
+    </a>
+    <a class="card c-red" href="조용히_신호등.html">
+      <div class="icon">🚦</div>
+      <div class="title">조용히 신호등</div>
+      <div class="desc">초록·노랑·빨강 · 집중 종소리</div>
+    </a>
+  </div>
+
+  <div class="section-title">퀴즈 · 문제 풀이</div>
+  <div class="card-grid">
+    <a class="card c-teal" href="OX객관식_퀴즈.html">
+      <div class="icon">✅</div>
+      <div class="title">OX·객관식 퀴즈</div>
+      <div class="desc">난이도별 퀴즈 · 한능검 맛보기</div>
+    </a>
+    <a class="card c-green" href="빈칸채우기_퀴즈.html">
+      <div class="icon">✏️</div>
+      <div class="title">빈칸채우기</div>
+      <div class="desc">4지선다로 정답 고르기</div>
+    </a>
+    <a class="card c-red" href="초성_퀴즈.html">
+      <div class="icon">🔤</div>
+      <div class="title">초성 퀴즈</div>
+      <div class="desc">초성 보고 단어 맞히기</div>
+    </a>
+    <a class="card c-yellow" href="틀린_설명_찾기.html">
+      <div class="icon">🧐</div>
+      <div class="title">틀린 설명 찾기</div>
+      <div class="desc">4개 중 틀린 것 고르기</div>
+    </a>
+    <a class="card c-cta" href="누구일까요.html">
+      <div class="icon">🕵️</div>
+      <div class="title">누구일까요?</div>
+      <div class="desc">힌트로 인물 알아맞히기</div>
+    </a>
+  </div>
+
+  <div class="section-title">활동 · 게임</div>
+  <div class="card-grid">
+    <a class="card c-green" href="짝맞추기_기억게임.html">
+      <div class="icon">🧩</div>
+      <div class="title">짝맞추기</div>
+      <div class="desc">인물-업적 기억 카드게임</div>
+    </a>
+    <a class="card c-green" href="짝_잇기.html">
+      <div class="icon">🔗</div>
+      <div class="title">짝 잇기</div>
+      <div class="desc">선으로 알맞은 짝 연결</div>
+    </a>
+    <a class="card c-cta" href="타임라인_순서맞추기.html">
+      <div class="icon">⏳</div>
+      <div class="title">타임라인 순서맞추기</div>
+      <div class="desc">사건 카드 드래그로 시대순 배열</div>
+    </a>
+    <a class="card c-blue" href="시대_분류하기.html">
+      <div class="icon">🗂️</div>
+      <div class="title">시대 분류하기</div>
+      <div class="desc">카드를 알맞은 시대 칸에</div>
+    </a>
+    <a class="card c-purple" href="지도_위치찾기.html">
+      <div class="icon">🗺️</div>
+      <div class="title">지역 찾기</div>
+      <div class="desc">8도 지도에서 위치 맞히기</div>
+    </a>
+    <a class="card c-purple" href="십자말풀이.html">
+      <div class="icon">🔠</div>
+      <div class="title">십자말풀이</div>
+      <div class="desc">글자 카드를 눌러 낱말 완성</div>
+    </a>
+    <a class="card c-purple" href="역사_빙고.html">
+      <div class="icon">🎯</div>
+      <div class="title">역사 빙고</div>
+      <div class="desc">두 팀 대결 · 줄 만들기</div>
+    </a>
+    <a class="card c-teal" href="스피드_퀴즈.html">
+      <div class="icon">⚡</div>
+      <div class="title">스피드 퀴즈</div>
+      <div class="desc">설명하고 맞히기 · 시간 제한</div>
+    </a>
+  </div>
+
+  <footer>
+    여행바구니 · 어린이 역사체험<br>
+    총 21개 도구 · 모든 파일을 같은 폴더에 넣어두어야 링크가 정상 작동해요
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>모둠 점수판</title>
+<style>
+:root{
+  --bg:#F7F1E1;--paper:#FBF8F0;--ink:#262220;--ink-soft:#6b6259;
+  --blue:#1F5C8B;--red:#C1362E;--yellow:#E3A72E;--green:#3E7A5D;--cta:#CB6A2F;--purple:#7B3F6B;--teal:#2E7DA3;
+  --line:rgba(38,34,32,0.16);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.topbar a.back{min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:800;font-size:14px;padding:0 12px;}
+.topbar .ttl{font-size:20px;font-weight:900;letter-spacing:-0.3px;}
+.topbar .sub{font-size:12px;color:var(--ink-soft);font-weight:600;margin-left:auto;text-align:right;}
+.topbar a.back{white-space:nowrap;flex:none;}
+.topbar .ttl{white-space:nowrap;}
+@media(max-width:560px){.topbar{padding:10px 12px;gap:10px;}.topbar .sub{display:none;}.topbar .ttl{font-size:18px;}.app{padding:12px 12px 32px;}}
+.app{max-width:1000px;margin:0 auto;padding:16px 16px 40px;}
+button{font-family:inherit;cursor:pointer;border:0;}
+.btn{min-height:52px;padding:0 22px;border-radius:14px;font-size:17px;font-weight:800;color:#fff;background:var(--cta);box-shadow:0 4px 0 rgba(0,0,0,0.18);}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.18);}
+.btn.blue{background:var(--blue);} .btn.red{background:var(--red);} .btn.green{background:var(--green);}
+.btn.purple{background:var(--purple);} .btn.teal{background:var(--teal);}
+.btn.yellow{background:var(--yellow);color:var(--ink);}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line);box-shadow:none;}
+.btn.small{min-height:44px;font-size:15px;padding:0 14px;}
+.btn[disabled]{opacity:.4;pointer-events:none;}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.center{text-align:center;}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;}
+select.sel{min-height:48px;font-size:16px;font-weight:700;border-radius:12px;border:1px solid var(--line);background:var(--paper);padding:0 12px;color:var(--ink);font-family:inherit;}
+.stepper{display:inline-flex;align-items:center;gap:6px;}
+.stepper button{width:48px;height:48px;border-radius:12px;background:var(--paper);border:1px solid var(--line);font-size:24px;font-weight:900;color:var(--ink);}
+.stepper .val{min-width:44px;text-align:center;font-size:22px;font-weight:900;}
+.hint{font-size:13px;color:var(--ink-soft);font-weight:600;}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(38,34,32,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.ov.on{display:flex;}
+.modal{background:var(--paper);border-radius:22px;padding:22px;max-width:520px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.35);}
+.modal h2{margin:0 0 12px;font-size:22px;font-weight:900;}
+.modal .big{font-size:56px;text-align:center;line-height:1.1;margin:6px 0;}
+.modal .msg{font-size:18px;font-weight:700;text-align:center;line-height:1.5;margin:6px 0 16px;}
+.modal .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:200;}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:800;background:var(--bg);border:1px solid var(--line);}
+
+
+.ctl{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:14px;}
+.ctl label{font-size:14px;font-weight:800;color:var(--ink-soft);margin-right:6px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;}
+.team{border-radius:22px;color:#fff;padding:16px;box-shadow:0 6px 16px rgba(38,34,32,.18);position:relative;}
+.team.lead{outline:5px solid var(--yellow);}
+.team .crown{position:absolute;top:-16px;right:14px;font-size:34px;display:none;}
+.team.lead .crown{display:block;}
+.team .nm{font-size:26px;font-weight:900;text-align:center;min-height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:rgba(255,255,255,.18);}
+.team .sc{font-size:84px;font-weight:900;text-align:center;line-height:1.1;margin:8px 0;transition:transform .15s;}
+.team .sc.bump{transform:scale(1.18);}
+.team .bt{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.team .bt button{min-height:60px;border-radius:14px;font-size:22px;font-weight:900;background:rgba(255,255,255,.92);color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.2);}
+.team .bt button:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.2);}
+.team .bt button.minus{background:rgba(255,255,255,.55);}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px;}
+.chips button{min-height:48px;padding:0 16px;border-radius:12px;background:var(--bg);border:1px solid var(--line);font-size:17px;font-weight:800;color:var(--ink);}
+.modal input[type=text]{width:100%;min-height:52px;font-size:20px;font-weight:700;border-radius:12px;border:2px solid var(--line);padding:0 12px;font-family:inherit;margin-bottom:12px;-webkit-user-select:text;user-select:text;}
+
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← 메뉴</a><div class="ttl">모둠 점수판</div><div class="sub">여행바구니 · 어린이 역사체험</div></div>
+<div class="app">
+
+<div class="ctl">
+  <div><label>모둠 수</label><span class="stepper"><button id="mn">−</button><span class="val" id="cnt">4</span><button id="mp">＋</button></span></div>
+  <div><label>이름 모양</label><select class="sel" id="style"></select></div>
+  <div style="margin-left:auto" class="row">
+    <button class="btn ghost small" id="undo">↩ 되돌리기</button>
+    <button class="btn ghost small" id="reset">0점으로</button>
+    <button class="btn small" id="fin">🏆 우승 발표</button>
+  </div>
+</div>
+<div class="hint" style="margin-bottom:12px">이름을 탭하면 바꿀 수 있어요. 점수 버튼은 +1 / +3 / +5 / −1</div>
+<div class="grid" id="grid"></div>
+
+</div>
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+<canvas id="confetti"></canvas>
+<script>
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+/* 셔플백: 문제 은행이 다 소진될 때까지 중복 없이 n개씩 뽑는다 */
+function makeBag(){return {pool:[]};}
+function takeRound(bag,all,n){
+  n=Math.min(n,all.length);
+  const out=[];
+  while(out.length<n){
+    if(bag.pool.length===0){
+      let fresh=shuffle(all.map((_,i)=>i));
+      // 직전 라운드와 연속 중복 방지
+      fresh=fresh.filter(i=>!out.includes(i)).concat(fresh.filter(i=>out.includes(i)));
+      bag.pool=fresh;
+    }
+    const i=bag.pool.shift();
+    if(!out.includes(i))out.push(i);
+  }
+  return out.map(i=>all[i]);
+}
+/* 소리 */
+let _ac=null;
+function beep(f,d,type){
+  try{
+    _ac=_ac||new (window.AudioContext||window.webkitAudioContext)();
+    const o=_ac.createOscillator(),g=_ac.createGain();
+    o.type=type||'sine';o.frequency.value=f;g.gain.value=0.12;
+    o.connect(g);g.connect(_ac.destination);o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001,_ac.currentTime+(d||0.15));
+    o.stop(_ac.currentTime+(d||0.15)+0.02);
+  }catch(e){}
+}
+function sndOk(){beep(660,.12);setTimeout(()=>beep(880,.18),110);}
+function sndNo(){beep(220,.25,'square');}
+function sndTick(){beep(520,.06);}
+function sndAlarm(){let k=0;const t=setInterval(()=>{beep(k%2?880:660,.22,'triangle');if(++k>=6)clearInterval(t);},260);}
+/* 폭죽 */
+function confetti(){
+  let cv=$('#confetti');if(!cv)return;
+  const ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return;
+  cv.width=innerWidth;cv.height=innerHeight;
+  const cols=['#1F5C8B','#C1362E','#E3A72E','#3E7A5D','#CB6A2F','#7B3F6B','#2E7DA3'];
+  const ps=Array.from({length:90},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.4,
+    vx:(Math.random()-.5)*4,vy:2+Math.random()*4,s:6+Math.random()*8,c:pick(cols),r:Math.random()*6}));
+  let f=0;
+  (function step(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.2;ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);ctx.restore();});
+    if(++f<110)requestAnimationFrame(step);else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+/* 모달: body는 HTML, buttons=[{t,cls,fn}] */
+function modal(o){
+  const ov=$('#ov'),m=$('#modal');
+  m.innerHTML=(o.title?'<h2>'+esc(o.title)+'</h2>':'')+(o.icon?'<div class="big">'+o.icon+'</div>':'')+
+    (o.msg?'<div class="msg">'+o.msg+'</div>':'')+(o.html||'')+'<div class="acts" id="macts"></div>';
+  const acts=$('#macts');
+  (o.buttons||[{t:'확인'}]).forEach(b=>{
+    const el=document.createElement('button');el.className='btn '+(b.cls||'');el.textContent=b.t;
+    el.onclick=()=>{ if(b.keep!==true)closeModal(); if(b.fn)b.fn(); };
+    acts.appendChild(el);
+  });
+  ov.classList.add('on');
+}
+function closeModal(){$('#ov').classList.remove('on');}
+
+
+const COLORS=['var(--blue)','var(--red)','var(--green)','var(--purple)','var(--cta)','var(--teal)'];
+const STYLES={
+ '숫자(1모둠)':['1모둠','2모둠','3모둠','4모둠','5모둠','6모둠'],
+ '동물':['호랑이팀','토끼팀','거북이팀','독수리팀','곰팀','사슴팀'],
+ '색깔':['파랑팀','빨강팀','초록팀','보라팀','주황팀','하늘팀'],
+ '역사 인물':['세종팀','이순신팀','광개토팀','유관순팀','장영실팀','신사임당팀']
+};
+let n=4, styleKey='숫자(1모둠)', names=STYLES[styleKey].slice(), scores=[0,0,0,0,0,0], hist=[];
+const sel=$('#style');
+Object.keys(STYLES).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;sel.appendChild(o);});
+sel.onchange=()=>{styleKey=sel.value;names=STYLES[styleKey].slice();render();};
+$('#mn').onclick=()=>{if(n>2){n--;render();}};
+$('#mp').onclick=()=>{if(n<6){n++;render();}};
+function add(i,d){
+  hist.push([i,d]);scores[i]+=d;
+  d>0?sndOk():sndNo();
+  render(i);
+}
+$('#undo').onclick=()=>{const h=hist.pop();if(!h)return;scores[h[0]]-=h[1];render();};
+$('#reset').onclick=()=>modal({icon:'🔄',msg:'모든 모둠 점수를 0점으로 되돌릴까요?',buttons:[
+  {t:'취소',cls:'ghost'},{t:'0점으로',cls:'red',fn:()=>{scores=[0,0,0,0,0,0];hist=[];render();}}]});
+$('#fin').onclick=()=>{
+  const s=scores.slice(0,n),mx=Math.max(...s);
+  const win=[];s.forEach((v,i)=>{if(v===mx)win.push(names[i]);});
+  confetti();sndOk();
+  if(mx<=0){modal({icon:'🤔',msg:'아직 점수가 없어요!'});return;}
+  modal({icon:'🏆',title:win.length>1?'공동 우승!':'우승!',msg:'<span style="font-size:30px;font-weight:900">'+win.map(esc).join(' · ')+'</span><br>'+mx+'점'});
+};
+function rename(i){
+  const chips=STYLES[styleKey].map((s,k)=>'<button data-v="'+esc(s)+'">'+esc(s)+'</button>').join('');
+  modal({title:'모둠 이름',html:'<div class="chips">'+chips+'</div><input type="text" id="nmin" maxlength="8" value="'+esc(names[i])+'">',
+    buttons:[{t:'취소',cls:'ghost'},{t:'저장',cls:'blue',fn:()=>{const v=$('#nmin').value.trim();if(v)names[i]=v;render();}}]});
+  $$('.chips button').forEach(b=>b.onclick=()=>{$('#nmin').value=b.dataset.v;});
+}
+function render(bumpIdx){
+  $('#cnt').textContent=n;
+  const mx=Math.max(...scores.slice(0,n));
+  const g=$('#grid');g.innerHTML='';
+  for(let i=0;i<n;i++){
+    const d=document.createElement('div');
+    d.className='team'+(mx>0&&scores[i]===mx?' lead':'');
+    d.style.background=COLORS[i];
+    d.innerHTML='<div class="crown">👑</div><div class="nm" data-r="'+i+'">'+esc(names[i])+'</div><div class="sc'+(bumpIdx===i?' bump':'')+'">'+scores[i]+'</div>'+
+      '<div class="bt"><button data-i="'+i+'" data-d="1">+1</button><button data-i="'+i+'" data-d="3">+3</button><button data-i="'+i+'" data-d="5">+5</button><button class="minus" data-i="'+i+'" data-d="-1">−1</button></div>';
+    g.appendChild(d);
+  }
+  $$('.bt button',g).forEach(b=>b.onclick=()=>add(+b.dataset.i,+b.dataset.d));
+  $$('.nm',g).forEach(b=>b.onclick=()=>rename(+b.dataset.r));
+  if(bumpIdx!==undefined)setTimeout(()=>{const s=$$('.sc',g)[bumpIdx];if(s)s.classList.remove('bump');},160);
+}
+render();
+
+</script>
+</body>
+</html>

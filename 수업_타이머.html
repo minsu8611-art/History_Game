@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>수업 타이머</title>
+<style>
+:root{
+  --bg:#F7F1E1;--paper:#FBF8F0;--ink:#262220;--ink-soft:#6b6259;
+  --blue:#1F5C8B;--red:#C1362E;--yellow:#E3A72E;--green:#3E7A5D;--cta:#CB6A2F;--purple:#7B3F6B;--teal:#2E7DA3;
+  --line:rgba(38,34,32,0.16);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.topbar a.back{min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:800;font-size:14px;padding:0 12px;}
+.topbar .ttl{font-size:20px;font-weight:900;letter-spacing:-0.3px;}
+.topbar .sub{font-size:12px;color:var(--ink-soft);font-weight:600;margin-left:auto;text-align:right;}
+.topbar a.back{white-space:nowrap;flex:none;}
+.topbar .ttl{white-space:nowrap;}
+@media(max-width:560px){.topbar{padding:10px 12px;gap:10px;}.topbar .sub{display:none;}.topbar .ttl{font-size:18px;}.app{padding:12px 12px 32px;}}
+.app{max-width:1000px;margin:0 auto;padding:16px 16px 40px;}
+button{font-family:inherit;cursor:pointer;border:0;}
+.btn{min-height:52px;padding:0 22px;border-radius:14px;font-size:17px;font-weight:800;color:#fff;background:var(--cta);box-shadow:0 4px 0 rgba(0,0,0,0.18);}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.18);}
+.btn.blue{background:var(--blue);} .btn.red{background:var(--red);} .btn.green{background:var(--green);}
+.btn.purple{background:var(--purple);} .btn.teal{background:var(--teal);}
+.btn.yellow{background:var(--yellow);color:var(--ink);}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line);box-shadow:none;}
+.btn.small{min-height:44px;font-size:15px;padding:0 14px;}
+.btn[disabled]{opacity:.4;pointer-events:none;}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.center{text-align:center;}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;}
+select.sel{min-height:48px;font-size:16px;font-weight:700;border-radius:12px;border:1px solid var(--line);background:var(--paper);padding:0 12px;color:var(--ink);font-family:inherit;}
+.stepper{display:inline-flex;align-items:center;gap:6px;}
+.stepper button{width:48px;height:48px;border-radius:12px;background:var(--paper);border:1px solid var(--line);font-size:24px;font-weight:900;color:var(--ink);}
+.stepper .val{min-width:44px;text-align:center;font-size:22px;font-weight:900;}
+.hint{font-size:13px;color:var(--ink-soft);font-weight:600;}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(38,34,32,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.ov.on{display:flex;}
+.modal{background:var(--paper);border-radius:22px;padding:22px;max-width:520px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.35);}
+.modal h2{margin:0 0 12px;font-size:22px;font-weight:900;}
+.modal .big{font-size:56px;text-align:center;line-height:1.1;margin:6px 0;}
+.modal .msg{font-size:18px;font-weight:700;text-align:center;line-height:1.5;margin:6px 0 16px;}
+.modal .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:200;}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:800;background:var(--bg);border:1px solid var(--line);}
+
+
+.wrap{display:flex;flex-direction:column;align-items:center;gap:16px;}
+.ringbox{position:relative;width:min(80vw,52vh,420px);height:min(80vw,52vh,420px);min-width:220px;min-height:220px;}
+.ringbox svg{width:100%;height:100%;transform:rotate(-90deg);}
+.ringbox .bg{stroke:rgba(38,34,32,.12);}
+.ringbox .fg{stroke:var(--blue);transition:stroke .3s;}
+.ringbox.warn .fg{stroke:var(--red);}
+.ringbox.done .fg{stroke:var(--green);}
+.tm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.tm .t{font-size:min(18vw,10vh,110px);font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-2px;}
+.tm .l{font-size:16px;font-weight:700;color:var(--ink-soft);}
+.ringbox.warn .t{color:var(--red);animation:pul .5s infinite alternate;}
+@keyframes pul{from{transform:scale(1)}to{transform:scale(1.08)}}
+.presets{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+.presets button{min-width:84px;min-height:56px;border-radius:14px;background:var(--paper);border:2px solid var(--line);font-size:20px;font-weight:900;color:var(--ink);}
+.presets button.on{background:var(--blue);color:#fff;border-color:var(--blue);}
+.mainrow{display:flex;flex-direction:column;align-items:center;gap:16px;}
+.big3{display:flex;gap:12px;}
+@media (orientation:landscape) and (max-height:480px){
+  .wrap{gap:8px;}
+  .presets button{min-height:44px;min-width:70px;font-size:17px;}
+  .mainrow{flex-direction:row;gap:28px;}
+  .ringbox{width:min(46vh,300px);height:min(46vh,300px);min-width:150px;min-height:150px;}
+  .big3{flex-direction:column;}
+  .big3 .btn{min-height:56px;font-size:19px;}
+}
+.big3 .btn{min-width:130px;min-height:64px;font-size:22px;}
+
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← 메뉴</a><div class="ttl">수업 타이머</div><div class="sub">여행바구니 · 어린이 역사체험</div></div>
+<div class="app">
+
+<div class="wrap">
+  <div class="presets" id="presets"></div>
+  <div class="row" style="justify-content:center">
+    <span class="hint">시간 조절</span>
+    <button class="btn ghost small" id="m30">−30초</button>
+    <button class="btn ghost small" id="p30">＋30초</button>
+    <button class="btn ghost small" id="p60">＋1분</button>
+  </div>
+  <div class="mainrow">
+  <div class="ringbox" id="rb">
+    <svg viewBox="0 0 200 200"><circle class="bg" cx="100" cy="100" r="90" fill="none" stroke-width="14"/><circle class="fg" id="fg" cx="100" cy="100" r="90" fill="none" stroke-width="14" stroke-linecap="round"/></svg>
+    <div class="tm"><div class="t" id="t">03:00</div><div class="l" id="l">준비!</div></div>
+  </div>
+  <div class="big3">
+    <button class="btn green" id="go">▶ 시작</button>
+    <button class="btn ghost" id="rs">↺ 처음으로</button>
+  </div>
+  </div>
+</div>
+
+</div>
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+<canvas id="confetti"></canvas>
+<script>
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+/* 셔플백: 문제 은행이 다 소진될 때까지 중복 없이 n개씩 뽑는다 */
+function makeBag(){return {pool:[]};}
+function takeRound(bag,all,n){
+  n=Math.min(n,all.length);
+  const out=[];
+  while(out.length<n){
+    if(bag.pool.length===0){
+      let fresh=shuffle(all.map((_,i)=>i));
+      // 직전 라운드와 연속 중복 방지
+      fresh=fresh.filter(i=>!out.includes(i)).concat(fresh.filter(i=>out.includes(i)));
+      bag.pool=fresh;
+    }
+    const i=bag.pool.shift();
+    if(!out.includes(i))out.push(i);
+  }
+  return out.map(i=>all[i]);
+}
+/* 소리 */
+let _ac=null;
+function beep(f,d,type){
+  try{
+    _ac=_ac||new (window.AudioContext||window.webkitAudioContext)();
+    const o=_ac.createOscillator(),g=_ac.createGain();
+    o.type=type||'sine';o.frequency.value=f;g.gain.value=0.12;
+    o.connect(g);g.connect(_ac.destination);o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001,_ac.currentTime+(d||0.15));
+    o.stop(_ac.currentTime+(d||0.15)+0.02);
+  }catch(e){}
+}
+function sndOk(){beep(660,.12);setTimeout(()=>beep(880,.18),110);}
+function sndNo(){beep(220,.25,'square');}
+function sndTick(){beep(520,.06);}
+function sndAlarm(){let k=0;const t=setInterval(()=>{beep(k%2?880:660,.22,'triangle');if(++k>=6)clearInterval(t);},260);}
+/* 폭죽 */
+function confetti(){
+  let cv=$('#confetti');if(!cv)return;
+  const ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return;
+  cv.width=innerWidth;cv.height=innerHeight;
+  const cols=['#1F5C8B','#C1362E','#E3A72E','#3E7A5D','#CB6A2F','#7B3F6B','#2E7DA3'];
+  const ps=Array.from({length:90},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.4,
+    vx:(Math.random()-.5)*4,vy:2+Math.random()*4,s:6+Math.random()*8,c:pick(cols),r:Math.random()*6}));
+  let f=0;
+  (function step(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.2;ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);ctx.restore();});
+    if(++f<110)requestAnimationFrame(step);else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+/* 모달: body는 HTML, buttons=[{t,cls,fn}] */
+function modal(o){
+  const ov=$('#ov'),m=$('#modal');
+  m.innerHTML=(o.title?'<h2>'+esc(o.title)+'</h2>':'')+(o.icon?'<div class="big">'+o.icon+'</div>':'')+
+    (o.msg?'<div class="msg">'+o.msg+'</div>':'')+(o.html||'')+'<div class="acts" id="macts"></div>';
+  const acts=$('#macts');
+  (o.buttons||[{t:'확인'}]).forEach(b=>{
+    const el=document.createElement('button');el.className='btn '+(b.cls||'');el.textContent=b.t;
+    el.onclick=()=>{ if(b.keep!==true)closeModal(); if(b.fn)b.fn(); };
+    acts.appendChild(el);
+  });
+  ov.classList.add('on');
+}
+function closeModal(){$('#ov').classList.remove('on');}
+
+
+const PRESETS=[[30,'30초'],[60,'1분'],[180,'3분'],[300,'5분'],[600,'10분'],[900,'15분']];
+let total=180, left=180, running=false, endAt=0, timer=null, lastSec=-1;
+const C=2*Math.PI*90, fg=$('#fg');
+fg.style.strokeDasharray=C;
+const pr=$('#presets');
+PRESETS.forEach(([s,l])=>{const b=document.createElement('button');b.textContent=l;b.dataset.s=s;b.onclick=()=>setTotal(s);pr.appendChild(b);});
+function fmt(s){s=Math.max(0,Math.ceil(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function setTotal(s){stop();total=left=Math.max(10,Math.min(5999,s));lastSec=-1;draw();}
+function draw(){
+  $('#t').textContent=fmt(left);
+  const frac=total>0?left/total:0;
+  fg.style.strokeDashoffset=C*(1-frac);
+  const rb=$('#rb');
+  rb.classList.toggle('warn',running&&left<=10&&left>0);
+  rb.classList.toggle('done',left<=0);
+  $('#l').textContent=left<=0?'시간 끝!':(running?'진행 중':(left<total?'잠깐 멈춤':'준비!'));
+  $$('#presets button').forEach(b=>b.classList.toggle('on',+b.dataset.s===total));
+  $('#go').textContent=running?'⏸ 멈춤':'▶ 시작';
+  $('#go').className='btn '+(running?'yellow':'green');
+}
+function tick(){
+  left=(endAt-Date.now())/1000;
+  const sec=Math.ceil(left);
+  if(sec!==lastSec){lastSec=sec;if(sec<=5&&sec>0)sndTick();}
+  if(left<=0){left=0;stop();draw();sndAlarm();confetti();
+    modal({icon:'⏰',title:'시간 끝!',msg:'모두 하던 일을 멈춰요',buttons:[{t:'확인',cls:'blue'},{t:'다시 하기',cls:'green',fn:()=>{left=total;draw();}}]});return;}
+  draw();
+}
+function stop(){running=false;if(timer){clearInterval(timer);timer=null;}}
+$('#go').onclick=()=>{
+  if(running){left=(endAt-Date.now())/1000;stop();draw();return;}
+  if(left<=0)left=total;
+  running=true;endAt=Date.now()+left*1000;timer=setInterval(tick,200);draw();
+};
+$('#rs').onclick=()=>{stop();left=total;lastSec=-1;draw();};
+function adj(d){
+  if(running){endAt+=d*1000;total=Math.max(10,total+d);left=(endAt-Date.now())/1000;}
+  else{total=Math.max(10,Math.min(5999,total+d));left=total;}
+  draw();
+}
+$('#m30').onclick=()=>adj(-30);$('#p30').onclick=()=>adj(30);$('#p60').onclick=()=>adj(60);
+draw();
+
+</script>
+</body>
+</html>
