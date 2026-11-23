@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>십자말풀이</title>
+<style>
+:root{
+  --bg:#F7F1E1;--paper:#FBF8F0;--ink:#262220;--ink-soft:#6b6259;
+  --blue:#1F5C8B;--red:#C1362E;--yellow:#E3A72E;--green:#3E7A5D;--cta:#CB6A2F;--purple:#7B3F6B;--teal:#2E7DA3;
+  --line:rgba(38,34,32,0.16);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.topbar a.back{min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:800;font-size:14px;padding:0 12px;}
+.topbar .ttl{font-size:20px;font-weight:900;letter-spacing:-0.3px;}
+.topbar .sub{font-size:12px;color:var(--ink-soft);font-weight:600;margin-left:auto;text-align:right;}
+.topbar a.back{white-space:nowrap;flex:none;}
+.topbar .ttl{white-space:nowrap;}
+@media(max-width:560px){.topbar{padding:10px 12px;gap:10px;}.topbar .sub{display:none;}.topbar .ttl{font-size:18px;}.app{padding:12px 12px 32px;}}
+.app{max-width:1000px;margin:0 auto;padding:16px 16px 40px;}
+button{font-family:inherit;cursor:pointer;border:0;}
+.btn{min-height:52px;padding:0 22px;border-radius:14px;font-size:17px;font-weight:800;color:#fff;background:var(--cta);box-shadow:0 4px 0 rgba(0,0,0,0.18);}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.18);}
+.btn.blue{background:var(--blue);} .btn.red{background:var(--red);} .btn.green{background:var(--green);}
+.btn.purple{background:var(--purple);} .btn.teal{background:var(--teal);}
+.btn.yellow{background:var(--yellow);color:var(--ink);}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line);box-shadow:none;}
+.btn.small{min-height:44px;font-size:15px;padding:0 14px;}
+.btn[disabled]{opacity:.4;pointer-events:none;}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.center{text-align:center;}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;}
+select.sel{min-height:48px;font-size:16px;font-weight:700;border-radius:12px;border:1px solid var(--line);background:var(--paper);padding:0 12px;color:var(--ink);font-family:inherit;}
+.stepper{display:inline-flex;align-items:center;gap:6px;}
+.stepper button{width:48px;height:48px;border-radius:12px;background:var(--paper);border:1px solid var(--line);font-size:24px;font-weight:900;color:var(--ink);}
+.stepper .val{min-width:44px;text-align:center;font-size:22px;font-weight:900;}
+.hint{font-size:13px;color:var(--ink-soft);font-weight:600;}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(38,34,32,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.ov.on{display:flex;}
+.modal{background:var(--paper);border-radius:22px;padding:22px;max-width:520px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.35);}
+.modal h2{margin:0 0 12px;font-size:22px;font-weight:900;}
+.modal .big{font-size:56px;text-align:center;line-height:1.1;margin:6px 0;}
+.modal .msg{font-size:18px;font-weight:700;text-align:center;line-height:1.5;margin:6px 0 16px;}
+.modal .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:200;}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:800;background:var(--bg);border:1px solid var(--line);}
+
+
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px;}
+.layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start;}
+@media(max-width:800px){.layout{grid-template-columns:1fr;}}
+.gridwrap{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:10px;overflow:auto;}
+.cw{display:grid;gap:3px;margin:0 auto;}
+.cl{position:relative;aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:clamp(18px,4.4vw,32px);font-weight:900;}
+.cl.blk{background:transparent;}
+.cl.w{background:#fff;border:2px solid var(--ink);color:var(--ink);}
+.cl.inw{background:#E6EEF6;}
+.cl.sel{background:#FFE9A8;border-color:var(--cta);}
+.cl.bad{background:#F5D6D3;border-color:var(--red);color:var(--red);}
+.cl.good{background:#D6EBDD;}
+.cl .no{position:absolute;left:3px;top:1px;font-size:10px;font-weight:800;color:var(--ink-soft);}
+.palbox{margin-top:10px;}
+@media(max-width:800px){.palbox{position:sticky;bottom:0;background:var(--bg);padding:6px 4px 8px;border-top:1px solid var(--line);z-index:5;}
+.pal{gap:4px;}.pal button{width:42px;height:42px;font-size:21px;}
+.acts3{margin-top:6px;flex-wrap:nowrap;}.acts3 .btn{min-height:44px;font-size:14px;padding:0 10px;white-space:nowrap;}
+.gridwrap{max-height:calc(100vh - 470px);min-height:210px;}}
+.curclue{background:#FBE9D8;border:2px solid var(--cta);border-radius:14px;padding:10px 12px;margin-bottom:8px;font-size:17px;font-weight:800;line-height:1.4;word-break:keep-all;}
+.pal{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+.pal button{width:44px;height:44px;border-radius:12px;background:var(--paper);border:2px solid var(--line);font-size:24px;font-weight:900;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.12);}
+.pal button:active{transform:translateY(2px);}
+.pal button.used{opacity:.3;}
+.clues h3{margin:0 0 6px;font-size:15px;color:var(--ink-soft);}
+.clues .cu{display:flex;gap:8px;align-items:flex-start;padding:10px;border-radius:12px;background:var(--paper);border:2px solid var(--line);margin-bottom:6px;font-size:16px;font-weight:700;line-height:1.4;word-break:keep-all;text-align:left;width:100%;color:var(--ink);}
+.clues .cu.on{border-color:var(--cta);background:#FBE9D8;}
+.clues .cu.done{opacity:.5;}
+.clues .cu b{flex:none;min-width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;text-align:center;line-height:26px;font-size:13px;}
+.acts3{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;justify-content:center;}
+.acts3 .btn{min-height:52px;font-size:16px;}
+
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← 메뉴</a><div class="ttl">십자말풀이</div><div class="sub">여행바구니 · 어린이 역사체험</div></div>
+<div class="app">
+
+<div class="top"><select class="sel" id="pz"></select><span class="hint" id="info"></span></div>
+<div class="curclue" id="curclue"></div>
+<div class="layout">
+  <div>
+    <div class="gridwrap"><div class="cw" id="cw"></div></div>
+    <div class="palbox"><div class="pal" id="pal"></div>
+    <div class="acts3">
+      <button class="btn ghost small" id="del">⌫ 지우기</button>
+      <button class="btn teal small" id="hintb">💡 힌트 (한 글자)</button>
+      <button class="btn green small" id="chk">✔ 확인하기</button>
+    </div></div>
+  </div>
+  <div class="clues" id="clues"></div>
+</div>
+
+</div>
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+<canvas id="confetti"></canvas>
+<script>
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+/* 셔플백: 문제 은행이 다 소진될 때까지 중복 없이 n개씩 뽑는다 */
+function makeBag(){return {pool:[]};}
+function takeRound(bag,all,n){
+  n=Math.min(n,all.length);
+  const out=[];
+  while(out.length<n){
+    if(bag.pool.length===0){
+      let fresh=shuffle(all.map((_,i)=>i));
+      // 직전 라운드와 연속 중복 방지
+      fresh=fresh.filter(i=>!out.includes(i)).concat(fresh.filter(i=>out.includes(i)));
+      bag.pool=fresh;
+    }
+    const i=bag.pool.shift();
+    if(!out.includes(i))out.push(i);
+  }
+  return out.map(i=>all[i]);
+}
+/* 소리 */
+let _ac=null;
+function beep(f,d,type){
+  try{
+    _ac=_ac||new (window.AudioContext||window.webkitAudioContext)();
+    const o=_ac.createOscillator(),g=_ac.createGain();
+    o.type=type||'sine';o.frequency.value=f;g.gain.value=0.12;
+    o.connect(g);g.connect(_ac.destination);o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001,_ac.currentTime+(d||0.15));
+    o.stop(_ac.currentTime+(d||0.15)+0.02);
+  }catch(e){}
+}
+function sndOk(){beep(660,.12);setTimeout(()=>beep(880,.18),110);}
+function sndNo(){beep(220,.25,'square');}
+function sndTick(){beep(520,.06);}
+function sndAlarm(){let k=0;const t=setInterval(()=>{beep(k%2?880:660,.22,'triangle');if(++k>=6)clearInterval(t);},260);}
+/* 폭죽 */
+function confetti(){
+  let cv=$('#confetti');if(!cv)return;
+  const ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return;
+  cv.width=innerWidth;cv.height=innerHeight;
+  const cols=['#1F5C8B','#C1362E','#E3A72E','#3E7A5D','#CB6A2F','#7B3F6B','#2E7DA3'];
+  const ps=Array.from({length:90},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.4,
+    vx:(Math.random()-.5)*4,vy:2+Math.random()*4,s:6+Math.random()*8,c:pick(cols),r:Math.random()*6}));
+  let f=0;
+  (function step(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.2;ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);ctx.restore();});
+    if(++f<110)requestAnimationFrame(step);else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+/* 모달: body는 HTML, buttons=[{t,cls,fn}] */
+function modal(o){
+  const ov=$('#ov'),m=$('#modal');
+  m.innerHTML=(o.title?'<h2>'+esc(o.title)+'</h2>':'')+(o.icon?'<div class="big">'+o.icon+'</div>':'')+
+    (o.msg?'<div class="msg">'+o.msg+'</div>':'')+(o.html||'')+'<div class="acts" id="macts"></div>';
+  const acts=$('#macts');
+  (o.buttons||[{t:'확인'}]).forEach(b=>{
+    const el=document.createElement('button');el.className='btn '+(b.cls||'');el.textContent=b.t;
+    el.onclick=()=>{ if(b.keep!==true)closeModal(); if(b.fn)b.fn(); };
+    acts.appendChild(el);
+  });
+  ov.classList.add('on');
+}
+function closeModal(){$('#ov').classList.remove('on');}
+
+const PUZZLES=[{"theme": "역사 퍼즐", "H": 13, "W": 6, "grid": [["", "", "", "", "첨", ""], ["", "", "", "", "성", ""], ["", "", "살", "수", "대", "첩"], ["", "", "", "원", "", ""], ["", "", "", "화", "", ""], ["김", "", "이", "성", "계", ""], ["유", "관", "순", "", "", ""], ["신", "", "신", "사", "임", "당"], ["", "", "", "", "진", ""], ["", "", "", "", "왜", ""], ["", "병", "자", "호", "란", ""], ["", "", "격", "", "", ""], ["", "", "루", "", "", ""]], "words": [{"a": "유관순", "r": 6, "c": 0, "d": "A", "clue": "3·1 운동 때 만세를 외친 소녀", "n": 6}, {"a": "이순신", "r": 5, "c": 2, "d": "D", "clue": "거북선을 앞세워 왜군을 물리친 장군", "n": 5}, {"a": "이성계", "r": 5, "c": 2, "d": "A", "clue": "조선을 세운 임금", "n": 5}, {"a": "신사임당", "r": 7, "c": 2, "d": "A", "clue": "율곡 이이의 어머니이자 오만 원 지폐 속 인물", "n": 7}, {"a": "임진왜란", "r": 7, "c": 4, "d": "D", "clue": "1592년 일본이 쳐들어온 전쟁", "n": 8}, {"a": "김유신", "r": 5, "c": 0, "d": "D", "clue": "신라의 삼국 통일을 이끈 장군", "n": 4}, {"a": "수원화성", "r": 2, "c": 3, "d": "D", "clue": "정조가 쌓았고 거중기가 쓰인 성", "n": 3}, {"a": "병자호란", "r": 10, "c": 1, "d": "A", "clue": "청나라가 쳐들어와 인조가 남한산성으로 피신한 전쟁", "n": 9}, {"a": "살수대첩", "r": 2, "c": 2, "d": "A", "clue": "을지문덕이 수나라 군대를 물리친 싸움", "n": 2}, {"a": "자격루", "r": 10, "c": 2, "d": "D", "clue": "스스로 시간을 알려 주는 물시계", "n": 10}, {"a": "첨성대", "r": 0, "c": 4, "d": "D", "clue": "신라 시대에 하늘의 별을 관측하던 건물", "n": 1}], "title": "퍼즐 1"}, {"theme": "역사 퍼즐", "H": 10, "W": 8, "grid": [["", "", "", "광", "복", "", "", ""], ["", "", "", "개", "", "", "", ""], ["", "", "", "토", "", "장", "보", "고"], ["", "", "", "대", "조", "영", "", "인"], ["세", "종", "대", "왕", "", "실", "", "돌"], ["", "", "동", "", "", "", "", ""], ["", "", "여", "", "선", "", "", ""], ["", "을", "지", "문", "덕", "", "", ""], ["", "", "도", "", "여", "", "", ""], ["", "", "", "", "왕", "건", "", ""]], "words": [{"a": "세종대왕", "r": 4, "c": 0, "d": "A", "clue": "한글을 만든 임금", "n": 5}, {"a": "대동여지도", "r": 4, "c": 2, "d": "D", "clue": "김정호가 목판에 새겨 만든 우리나라 땅 그림", "n": 6}, {"a": "을지문덕", "r": 7, "c": 1, "d": "A", "clue": "살수에서 수나라 군대를 물리친 고구려 장군", "n": 8}, {"a": "광개토대왕", "r": 0, "c": 3, "d": "D", "clue": "고구려의 영토를 크게 넓힌 왕", "n": 1}, {"a": "대조영", "r": 3, "c": 3, "d": "A", "clue": "발해를 세운 사람", "n": 4}, {"a": "장영실", "r": 2, "c": 5, "d": "D", "clue": "물시계 자격루를 만든 과학자", "n": 2}, {"a": "선덕여왕", "r": 6, "c": 4, "d": "D", "clue": "신라의 첫 번째 여성 임금", "n": 7}, {"a": "광복", "r": 0, "c": 3, "d": "A", "clue": "1945년 일본에서 벗어나 나라를 되찾은 일", "n": 1}, {"a": "장보고", "r": 2, "c": 5, "d": "A", "clue": "청해진을 세운 신라의 해상왕", "n": 2}, {"a": "왕건", "r": 9, "c": 4, "d": "A", "clue": "고려를 세운 임금", "n": 9}, {"a": "고인돌", "r": 2, "c": 7, "d": "D", "clue": "청동기 시대의 큰 돌무덤", "n": 3}], "title": "퍼즐 2"}, {"theme": "역사 퍼즐", "H": 6, "W": 8, "grid": [["", "", "", "", "", "", "고", "려"], ["", "", "", "", "고", "구", "려", ""], ["", "", "", "", "조", "", "청", ""], ["", "", "거", "북", "선", "", "자", ""], ["", "", "중", "", "", "", "", ""], ["태", "극", "기", "", "", "", "", ""]], "words": [{"a": "고구려", "r": 1, "c": 4, "d": "A", "clue": "주몽이 세운 나라", "n": 2}, {"a": "고조선", "r": 1, "c": 4, "d": "D", "clue": "단군왕검이 세운 우리나라 최초의 나라", "n": 2}, {"a": "고려청자", "r": 0, "c": 6, "d": "D", "clue": "비색이라 불린 푸른빛 도자기", "n": 1}, {"a": "거북선", "r": 3, "c": 2, "d": "A", "clue": "이순신 장군이 앞장서 쓴 거북 모양의 배", "n": 3}, {"a": "고려", "r": 0, "c": 6, "d": "A", "clue": "왕건이 세운 나라", "n": 1}, {"a": "거중기", "r": 3, "c": 2, "d": "D", "clue": "정약용이 만든, 무거운 돌을 들어 올리는 기계", "n": 3}, {"a": "태극기", "r": 5, "c": 0, "d": "A", "clue": "우리나라의 국기", "n": 4}], "title": "퍼즐 3"}, {"theme": "역사 퍼즐", "H": 7, "W": 7, "grid": [["삼", "별", "초", "", "", "", ""], ["일", "", "", "", "", "", ""], ["운", "", "", "훈", "", "", ""], ["동", "학", "농", "민", "운", "동", ""], ["", "", "", "정", "", "의", ""], ["", "", "", "음", "", "보", ""], ["", "", "", "", "강", "감", "찬"]], "words": [{"a": "강감찬", "r": 6, "c": 4, "d": "A", "clue": "귀주에서 거란군을 크게 물리친 고려 장군", "n": 5}, {"a": "동의보감", "r": 3, "c": 5, "d": "D", "clue": "허준이 쓴 의학책", "n": 4}, {"a": "동학농민운동", "r": 3, "c": 0, "d": "A", "clue": "1894년에 일어난 큰 봉기로, 지도자는 전봉준", "n": 3}, {"a": "훈민정음", "r": 2, "c": 3, "d": "D", "clue": "한글의 처음 이름", "n": 2}, {"a": "삼일운동", "r": 0, "c": 0, "d": "D", "clue": "1919년 3월 1일에 온 국민이 만세를 외친 일", "n": 1}, {"a": "삼별초", "r": 0, "c": 0, "d": "A", "clue": "몽골에 끝까지 맞서 싸운 고려의 군대", "n": 1}], "title": "퍼즐 4"}];const DECOY=["감", "강", "개", "거", "건", "격", "경", "계", "고", "과", "관", "광", "구", "국", "굴", "궁", "귀", "극", "근", "글", "기", "길", "김", "남", "농", "늬", "당", "대", "덕", "도", "독", "돌", "동", "라", "란", "려", "루", "립", "만", "몽", "묘", "무", "문", "민", "발", "백", "별", "병", "보", "복", "봉", "부", "북", "불", "빗", "사", "산", "살", "삼", "석", "선", "성", "세", "수", "순", "시", "신", "실", "안", "암", "약", "여", "영", "왕", "왜", "용", "우", "운", "원", "유", "윤", "을", "음", "의", "이", "인", "일", "임", "자", "장", "쟁", "전", "정", "제", "조", "종", "주", "준", "중", "지", "진", "찬", "첨", "첩", "청", "초", "측", "태", "토", "팔", "학", "한", "해", "허", "호", "화", "훈"];
+let P,fill,sel=null,dir='A',cellW={},wordsAt={},checked=false;
+const pz=$('#pz');PUZZLES.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.title+' ('+p.words.length+'단어)';pz.appendChild(o);});
+pz.onchange=()=>load(+pz.value);
+function cells(w){const a=[];for(let k=0;k<w.a.length;k++)a.push([w.r+(w.d==='D'?k:0),w.c+(w.d==='A'?k:0)]);return a;}
+function load(i){
+  P=PUZZLES[i];fill=P.grid.map(r=>r.map(ch=>''));sel=null;checked=false;wordsAt={};
+  P.words.forEach((w,wi)=>cells(w).forEach(([r,c],k)=>{(wordsAt[r+','+c]=wordsAt[r+','+c]||[]).push(wi);}));
+  // 글자 은행: 정답 글자 + 여분
+  const need=[...new Set(P.grid.flat().filter(Boolean))];
+  const extra=shuffle(DECOY.filter(x=>!need.includes(x))).slice(0,Math.max(4,Math.ceil(need.length*.2)));
+  window._pal=shuffle(need.concat(extra));
+  $('#info').textContent='칸을 누르고 아래 글자를 눌러 채워요';
+  drawAll();
+  const first=P.words.find(w=>w.n===1)||P.words[0];selectWord(P.words.indexOf(first));
+}
+function curWord(){if(!sel)return -1;const ws=wordsAt[sel[0]+','+sel[1]]||[];const m=ws.find(i=>P.words[i].d===dir);return m!==undefined?m:(ws[0]!==undefined?ws[0]:-1);}
+function selectWord(wi){
+  const w=P.words[wi];dir=w.d;const cs=cells(w);
+  const empty=cs.find(([r,c])=>!fill[r][c]);sel=empty||cs[0];drawAll();
+}
+function drawAll(){drawGrid();drawPal();drawClues();drawCur();}
+function drawCur(){
+  const wi=curWord(),el=$('#curclue');
+  if(wi<0){el.textContent='칸을 눌러 시작해요';return;}
+  const w=P.words[wi];el.textContent=w.n+'번 '+(w.d==='A'?'가로 →':'세로 ↓')+' : '+w.clue+' ('+w.a.length+'글자)';
+  const s=$('#cw .cl.sel');if(s&&s.scrollIntoView)s.scrollIntoView({block:'nearest',inline:'nearest'});
+}
+function drawGrid(){
+  const g=$('#cw');const availW=Math.min(560,Math.max(280,Math.floor($('.gridwrap').clientWidth||innerWidth)-24)),availH=Math.max(220,Math.floor(innerHeight*0.45));const cs=Math.max(34,Math.min(innerWidth<=800?44:56,Math.floor((availW-3*P.W)/P.W)));g.style.gridTemplateColumns='repeat('+P.W+','+cs+'px)';g.style.width='max-content';g.innerHTML='';
+  const cw=curWord(),inw=new Set(cw>=0?cells(P.words[cw]).map(x=>x.join(',')):[]);
+  const nums={};P.words.forEach(w=>{nums[w.r+','+w.c]=w.n;});
+  for(let r=0;r<P.H;r++)for(let c=0;c<P.W;c++){
+    const d=document.createElement('div');const k=r+','+c;
+    if(!P.grid[r][c]){d.className='cl blk';g.appendChild(d);continue;}
+    let cls='cl w';
+    if(inw.has(k))cls+=' inw';
+    if(sel&&sel[0]===r&&sel[1]===c)cls+=' sel';
+    if(checked&&fill[r][c]){cls+=fill[r][c]===P.grid[r][c]?' good':' bad';}
+    d.className=cls;d.textContent=fill[r][c];
+    if(nums[k]){const n=document.createElement('span');n.className='no';n.textContent=nums[k];d.appendChild(n);}
+    d.onclick=()=>tapCell(r,c);g.appendChild(d);
+  }
+}
+function tapCell(r,c){
+  const ws=wordsAt[r+','+c]||[];
+  if(sel&&sel[0]===r&&sel[1]===c&&ws.length>1){dir=dir==='A'?'D':'A';}
+  else if(ws.length&&!ws.some(i=>P.words[i].d===dir)){dir=P.words[ws[0]].d;}
+  sel=[r,c];checked=false;sndTick();drawAll();
+}
+function drawPal(){
+  const p=$('#pal');p.innerHTML='';
+  window._pal.forEach(ch=>{const b=document.createElement('button');b.textContent=ch;b.onclick=()=>put(ch);p.appendChild(b);});
+}
+function put(ch){
+  if(!sel)return;checked=false;
+  fill[sel[0]][sel[1]]=ch;sndTick();
+  // 다음 칸으로 이동
+  const wi=curWord();
+  if(wi>=0){const cs=cells(P.words[wi]);const i=cs.findIndex(x=>x[0]===sel[0]&&x[1]===sel[1]);if(i>=0&&i<cs.length-1)sel=cs[i+1];}
+  drawAll();checkWin();
+}
+$('#del').onclick=()=>{if(!sel)return;fill[sel[0]][sel[1]]='';checked=false;drawAll();};
+$('#hintb').onclick=()=>{
+  if(!sel)return;const ch=P.grid[sel[0]][sel[1]];if(!ch)return;
+  fill[sel[0]][sel[1]]=ch;sndOk();drawAll();checkWin();
+};
+$('#chk').onclick=()=>{
+  checked=true;drawAll();
+  const bad=P.grid.some((row,r)=>row.some((ch,c)=>ch&&fill[r][c]&&fill[r][c]!==ch));
+  const empty=P.grid.some((row,r)=>row.some((ch,c)=>ch&&!fill[r][c]));
+  if(bad){sndNo();$('#info').textContent='빨간 칸을 다시 생각해 봐요!';}
+  else if(empty){sndTick();$('#info').textContent='지금까지는 모두 맞아요! 계속 채워요.';}
+};
+function checkWin(){
+  const ok=P.grid.every((row,r)=>row.every((ch,c)=>!ch||fill[r][c]===ch));
+  if(ok){checked=true;drawAll();confetti();sndOk();modal({icon:'🏆',title:'십자말풀이 완성!',msg:'모든 낱말을 맞혔어요!',buttons:[{t:'다음 퍼즐',cls:'green',fn:()=>{const n=(+pz.value+1)%PUZZLES.length;pz.value=n;load(n);}},{t:'닫기',cls:'ghost'}]});}
+}
+function wordDone(w){return cells(w).every(([r,c])=>fill[r][c]===P.grid[r][c]);}
+function drawClues(){
+  const cl=$('#clues');cl.innerHTML='';
+  const cur=curWord();
+  [['A','가로 →'],['D','세로 ↓']].forEach(([d,t])=>{
+    const h=document.createElement('h3');h.textContent=t;cl.appendChild(h);
+    P.words.map((w,i)=>[w,i]).filter(([w])=>w.d===d).sort((a,b)=>a[0].n-b[0].n).forEach(([w,i])=>{
+      const b=document.createElement('button');b.className='cu'+(i===cur?' on':'')+(wordDone(w)?' done':'');
+      b.innerHTML='<b>'+w.n+'</b><span>'+esc(w.clue)+' ('+w.a.length+'글자)</span>';
+      b.onclick=()=>{checked=false;selectWord(i);};cl.appendChild(b);
+    });
+  });
+}
+load(0);
+
+</script>
+</body>
+</html>

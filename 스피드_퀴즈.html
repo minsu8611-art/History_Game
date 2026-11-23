@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>스피드 퀴즈</title>
+<style>
+:root{
+  --bg:#F7F1E1;--paper:#FBF8F0;--ink:#262220;--ink-soft:#6b6259;
+  --blue:#1F5C8B;--red:#C1362E;--yellow:#E3A72E;--green:#3E7A5D;--cta:#CB6A2F;--purple:#7B3F6B;--teal:#2E7DA3;
+  --line:rgba(38,34,32,0.16);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.topbar a.back{min-height:44px;min-width:64px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:var(--bg);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-weight:800;font-size:14px;padding:0 12px;}
+.topbar .ttl{font-size:20px;font-weight:900;letter-spacing:-0.3px;}
+.topbar .sub{font-size:12px;color:var(--ink-soft);font-weight:600;margin-left:auto;text-align:right;}
+.topbar a.back{white-space:nowrap;flex:none;}
+.topbar .ttl{white-space:nowrap;}
+@media(max-width:560px){.topbar{padding:10px 12px;gap:10px;}.topbar .sub{display:none;}.topbar .ttl{font-size:18px;}.app{padding:12px 12px 32px;}}
+.app{max-width:1000px;margin:0 auto;padding:16px 16px 40px;}
+button{font-family:inherit;cursor:pointer;border:0;}
+.btn{min-height:52px;padding:0 22px;border-radius:14px;font-size:17px;font-weight:800;color:#fff;background:var(--cta);box-shadow:0 4px 0 rgba(0,0,0,0.18);}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.18);}
+.btn.blue{background:var(--blue);} .btn.red{background:var(--red);} .btn.green{background:var(--green);}
+.btn.purple{background:var(--purple);} .btn.teal{background:var(--teal);}
+.btn.yellow{background:var(--yellow);color:var(--ink);}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line);box-shadow:none;}
+.btn.small{min-height:44px;font-size:15px;padding:0 14px;}
+.btn[disabled]{opacity:.4;pointer-events:none;}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.center{text-align:center;}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;}
+select.sel{min-height:48px;font-size:16px;font-weight:700;border-radius:12px;border:1px solid var(--line);background:var(--paper);padding:0 12px;color:var(--ink);font-family:inherit;}
+.stepper{display:inline-flex;align-items:center;gap:6px;}
+.stepper button{width:48px;height:48px;border-radius:12px;background:var(--paper);border:1px solid var(--line);font-size:24px;font-weight:900;color:var(--ink);}
+.stepper .val{min-width:44px;text-align:center;font-size:22px;font-weight:900;}
+.hint{font-size:13px;color:var(--ink-soft);font-weight:600;}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(38,34,32,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;}
+.ov.on{display:flex;}
+.modal{background:var(--paper);border-radius:22px;padding:22px;max-width:520px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.35);}
+.modal h2{margin:0 0 12px;font-size:22px;font-weight:900;}
+.modal .big{font-size:56px;text-align:center;line-height:1.1;margin:6px 0;}
+.modal .msg{font-size:18px;font-weight:700;text-align:center;line-height:1.5;margin:6px 0 16px;}
+.modal .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:200;}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:800;background:var(--bg);border:1px solid var(--line);}
+
+
+.ctl{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px;}
+.ctl label{font-size:13px;font-weight:800;color:var(--ink-soft);margin-right:4px;}
+.stage{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:20px 16px;text-align:center;min-height:360px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+.who{font-size:22px;font-weight:900;}
+.timer{font-size:clamp(44px,10vw,72px);font-weight:900;font-variant-numeric:tabular-nums;}
+.timer.warn{color:var(--red);animation:pul .5s infinite alternate;}
+@keyframes pul{from{transform:scale(1)}to{transform:scale(1.1)}}
+.word{font-size:clamp(46px,12vw,110px);font-weight:900;line-height:1.15;word-break:keep-all;padding:10px 20px;border-radius:20px;background:var(--bg);min-width:70%;}
+.cnt{font-size:22px;font-weight:900;color:var(--green);}
+.big2{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+.big2 .btn{min-width:180px;min-height:76px;font-size:26px;}
+.count3{font-size:clamp(90px,24vw,200px);font-weight:900;color:var(--cta);}
+.rules{font-size:15px;font-weight:700;color:var(--ink-soft);line-height:1.6;}
+.board{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px;}
+.board .pill{font-size:16px;padding:8px 16px;}
+.board .pill.now{background:var(--yellow);}
+
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← 메뉴</a><div class="ttl">스피드 퀴즈</div><div class="sub">여행바구니 · 어린이 역사체험</div></div>
+<div class="app">
+
+<div class="ctl">
+  <div><label>주제</label><select class="sel" id="topic"></select></div>
+  <div><label>모둠 수</label><span class="stepper"><button id="tn">−</button><span class="val" id="tc">3</span><button id="tp">＋</button></span></div>
+  <div><label>시간</label><select class="sel" id="tm"><option value="30">30초</option><option value="60" selected>60초</option><option value="90">90초</option></select></div>
+  <div><label>방식</label><select class="sel" id="how"><option value="말로 설명해요 (단어 자체는 말하면 안 돼요!)">말로 설명</option><option value="몸으로 표현해요 (말하면 안 돼요!)">몸으로 표현</option></select></div>
+</div>
+<div class="stage" id="stage"></div>
+<div class="board" id="board"></div>
+
+</div>
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+<canvas id="confetti"></canvas>
+<script>
+
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+/* 셔플백: 문제 은행이 다 소진될 때까지 중복 없이 n개씩 뽑는다 */
+function makeBag(){return {pool:[]};}
+function takeRound(bag,all,n){
+  n=Math.min(n,all.length);
+  const out=[];
+  while(out.length<n){
+    if(bag.pool.length===0){
+      let fresh=shuffle(all.map((_,i)=>i));
+      // 직전 라운드와 연속 중복 방지
+      fresh=fresh.filter(i=>!out.includes(i)).concat(fresh.filter(i=>out.includes(i)));
+      bag.pool=fresh;
+    }
+    const i=bag.pool.shift();
+    if(!out.includes(i))out.push(i);
+  }
+  return out.map(i=>all[i]);
+}
+/* 소리 */
+let _ac=null;
+function beep(f,d,type){
+  try{
+    _ac=_ac||new (window.AudioContext||window.webkitAudioContext)();
+    const o=_ac.createOscillator(),g=_ac.createGain();
+    o.type=type||'sine';o.frequency.value=f;g.gain.value=0.12;
+    o.connect(g);g.connect(_ac.destination);o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001,_ac.currentTime+(d||0.15));
+    o.stop(_ac.currentTime+(d||0.15)+0.02);
+  }catch(e){}
+}
+function sndOk(){beep(660,.12);setTimeout(()=>beep(880,.18),110);}
+function sndNo(){beep(220,.25,'square');}
+function sndTick(){beep(520,.06);}
+function sndAlarm(){let k=0;const t=setInterval(()=>{beep(k%2?880:660,.22,'triangle');if(++k>=6)clearInterval(t);},260);}
+/* 폭죽 */
+function confetti(){
+  let cv=$('#confetti');if(!cv)return;
+  const ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return;
+  cv.width=innerWidth;cv.height=innerHeight;
+  const cols=['#1F5C8B','#C1362E','#E3A72E','#3E7A5D','#CB6A2F','#7B3F6B','#2E7DA3'];
+  const ps=Array.from({length:90},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.4,
+    vx:(Math.random()-.5)*4,vy:2+Math.random()*4,s:6+Math.random()*8,c:pick(cols),r:Math.random()*6}));
+  let f=0;
+  (function step(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=.2;ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);ctx.restore();});
+    if(++f<110)requestAnimationFrame(step);else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+/* 모달: body는 HTML, buttons=[{t,cls,fn}] */
+function modal(o){
+  const ov=$('#ov'),m=$('#modal');
+  m.innerHTML=(o.title?'<h2>'+esc(o.title)+'</h2>':'')+(o.icon?'<div class="big">'+o.icon+'</div>':'')+
+    (o.msg?'<div class="msg">'+o.msg+'</div>':'')+(o.html||'')+'<div class="acts" id="macts"></div>';
+  const acts=$('#macts');
+  (o.buttons||[{t:'확인'}]).forEach(b=>{
+    const el=document.createElement('button');el.className='btn '+(b.cls||'');el.textContent=b.t;
+    el.onclick=()=>{ if(b.keep!==true)closeModal(); if(b.fn)b.fn(); };
+    acts.appendChild(el);
+  });
+  ov.classList.add('on');
+}
+function closeModal(){$('#ov').classList.remove('on');}
+
+const BANK={"인물": ["세종대왕", "이순신", "광개토대왕", "유관순", "안중근", "김구", "장영실", "허준", "정약용", "김정호", "신사임당", "을지문덕", "강감찬", "왕건", "이성계", "주몽", "박혁거세", "대조영", "장보고", "윤봉길", "정조", "선덕여왕", "이사부", "안용복", "서희", "최무선", "김유신", "이황"], "문화재·장소·물건": ["경복궁", "불국사", "석굴암", "첨성대", "팔만대장경", "직지심체요절", "거북선", "수원화성", "남한산성", "독도", "한산도", "고인돌", "빗살무늬토기", "고려청자", "훈민정음", "태극기", "무궁화", "광화문", "종묘", "독립문", "대동여지도", "동의보감", "측우기", "자격루", "거중기"], "나라·사건·용어": ["고조선", "고구려", "백제", "신라", "발해", "고려", "조선", "대한제국", "임진왜란", "병자호란", "살수대첩", "귀주대첩", "삼일운동", "광복", "한글", "과거", "구석기시대", "신석기시대", "청동기시대", "한국전쟁", "임시정부", "삼별초", "동학농민운동"], "전체 섞어서": ["세종대왕", "이순신", "광개토대왕", "유관순", "안중근", "김구", "장영실", "허준", "정약용", "김정호", "신사임당", "을지문덕", "강감찬", "왕건", "이성계", "주몽", "박혁거세", "대조영", "장보고", "윤봉길", "정조", "선덕여왕", "이사부", "안용복", "서희", "최무선", "김유신", "이황", "경복궁", "불국사", "석굴암", "첨성대", "팔만대장경", "직지심체요절", "거북선", "수원화성", "남한산성", "독도", "한산도", "고인돌", "빗살무늬토기", "고려청자", "훈민정음", "태극기", "무궁화", "광화문", "종묘", "독립문", "대동여지도", "동의보감", "측우기", "자격루", "거중기", "고조선", "고구려", "백제", "신라", "발해", "고려", "조선", "대한제국", "임진왜란", "병자호란", "살수대첩", "귀주대첩", "삼일운동", "광복", "한글", "과거", "구석기시대", "신석기시대", "청동기시대", "한국전쟁", "임시정부", "삼별초", "동학농민운동"]};
+let T=3,scores=[0,0,0,0],turn=0,played=[false,false,false,false],words=[],deck=[],got=0,left=0,endAt=0,tmr=null,phase='ready';
+const ts=$('#topic');
+Object.keys(BANK).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k+' ('+BANK[k].length+'개)';ts.appendChild(o);});
+ts.onchange=()=>resetAll();$('#tm').onchange=()=>{if(phase==='ready')ready();};$('#how').onchange=()=>{if(phase==='ready')ready();};
+$('#tn').onclick=()=>{if(T>2){T--;resetAll();}};$('#tp').onclick=()=>{if(T<4){T++;resetAll();}};
+function resetAll(){stopT();scores=[0,0,0,0];turn=0;played=[false,false,false,false];deck=[];ready();}
+function nextWord(){if(!deck.length)deck=shuffle(BANK[ts.value]);return deck.pop();}
+function stopT(){if(tmr){clearInterval(tmr);tmr=null;}}
+function drawBoard(){
+  $('#tc').textContent=T;
+  const b=$('#board');b.innerHTML='';
+  for(let i=0;i<T;i++){const p=document.createElement('span');p.className='pill'+(i===turn&&phase!=='final'?' now':'');p.textContent=(i+1)+'모둠 '+scores[i]+'점';b.appendChild(p);}
+}
+function ready(){
+  phase='ready';drawBoard();
+  const st=$('#stage');
+  st.innerHTML='<div class="who">'+(turn+1)+'모둠 차례</div><div class="rules">'+esc($('#how').value)+'<br>한 명이 문제를 보고 설명하면, 모둠 친구들이 정답을 맞혀요.<br>제한 시간 안에 많이 맞힐수록 높은 점수!</div><button class="btn big" id="st" style="min-width:220px;min-height:72px;font-size:26px">▶ 시작!</button>';
+  $('#st').onclick=countdown;
+}
+function countdown(){
+  phase='count';let c=3;
+  const st=$('#stage');st.innerHTML='<div class="who">'+(turn+1)+'모둠, 준비!</div><div class="count3" id="c3">3</div>';
+  sndTick();
+  const t=setInterval(()=>{c--;if(c<=0){clearInterval(t);play();}else{$('#c3').textContent=c;sndTick();}},800);
+}
+function play(){
+  phase='play';got=0;left=+$('#tm').value;endAt=Date.now()+left*1000;
+  const st=$('#stage');
+  st.innerHTML='<div class="who">'+(turn+1)+'모둠</div><div class="timer" id="tt"></div><div class="word" id="w"></div><div class="cnt" id="g"></div><div class="big2"><button class="btn green" id="ok">✔ 맞혔어요</button><button class="btn ghost" id="ps">⏭ 패스</button></div>';
+  setWord();upd();
+  $('#ok').onclick=()=>{got++;sndOk();setWord();upd();};
+  $('#ps').onclick=()=>{sndTick();setWord();};
+  tmr=setInterval(()=>{
+    left=Math.max(0,(endAt-Date.now())/1000);upd();
+    if(left<=0){stopT();finishTurn();}
+  },200);
+}
+function setWord(){$('#w').textContent=nextWord();}
+function upd(){
+  const tt=$('#tt');if(!tt)return;
+  const s=Math.ceil(left);tt.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  tt.classList.toggle('warn',left<=10);
+  $('#g').textContent='맞힌 개수: '+got+'개';
+}
+function finishTurn(){
+  phase='between';scores[turn]+=got;played[turn]=true;sndAlarm();drawBoard();
+  const all=played.slice(0,T).every(Boolean);
+  const st=$('#stage');
+  st.innerHTML='<div class="who">⏰ 시간 끝!</div><div class="word" style="font-size:clamp(34px,8vw,64px)">'+got+'개 맞혔어요!</div>';
+  const b=document.createElement('button');b.className='btn big';b.style.cssText='min-width:220px;min-height:68px;font-size:24px';
+  b.textContent=all?'🏆 최종 결과':'다음 모둠 ▶';
+  b.onclick=()=>{if(all)final();else{turn=(turn+1)%T;while(played[turn])turn=(turn+1)%T;ready();}};
+  st.appendChild(b);
+}
+function final(){
+  phase='final';drawBoard();
+  const mx=Math.max(...scores.slice(0,T));const win=[];
+  for(let i=0;i<T;i++)if(scores[i]===mx)win.push((i+1)+'모둠');
+  confetti();sndOk();
+  const st=$('#stage');
+  st.innerHTML='<div class="who">🏆 '+(win.length>1?'공동 우승':'우승')+'</div><div class="word" style="font-size:clamp(38px,9vw,80px)">'+win.join(' · ')+'</div><div class="rules">'+mx+'점</div>';
+  const b=document.createElement('button');b.className='btn green';b.style.cssText='min-width:220px;min-height:68px;font-size:24px';b.textContent='🔄 처음부터 다시';b.onclick=resetAll;st.appendChild(b);
+}
+resetAll();
+
+</script>
+</body>
+</html>
